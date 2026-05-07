@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +29,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${geistMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
