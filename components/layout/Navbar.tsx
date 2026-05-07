@@ -3,22 +3,22 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full glass-nav">
       <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
         <div className="mr-4 hidden md:flex">
           <Link className="mr-6 flex items-center space-x-2" href="/">
-            <span className="hidden font-bold sm:inline-block">
+            <span className="hidden font-bold sm:inline-block text-foreground">
               SpendPilot AI
             </span>
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium">
-            <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/">
+            <Link className="transition-colors hover:text-foreground text-muted-foreground" href="/">
               Home
             </Link>
-            <Link className="transition-colors hover:text-foreground/80 text-foreground" href="/audit">
+            <Link className="transition-colors hover:text-foreground text-foreground" href="/audit">
               Audit
             </Link>
-            <Link className="transition-colors hover:text-foreground/80 text-foreground/60" href="/report/sample-report">
+            <Link className="transition-colors hover:text-foreground text-muted-foreground" href="/report/sample-report">
               Reports
             </Link>
           </nav>
@@ -27,8 +27,11 @@ export default function Navbar() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             {/* Search Placeholder */}
           </div>
-          <nav className="flex items-center gap-2">
-            <Link href="/audit" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+          <nav className="flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Log in
+            </Link>
+            <Link href="/audit" className="premium-btn-primary">
               Start Audit
             </Link>
           </nav>
