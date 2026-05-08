@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { auditFormSchema, type AuditFormSchema } from "@/lib/auditSchema";
+import { partialAuditFormSchema } from "@/lib/validation";
 import {
   USE_CASES,
   USE_CASE_LABELS,
@@ -12,6 +13,7 @@ import {
   spendPerHead,
   type AuditFormValues,
 } from "@/types/audit";
+import { useFormPersistence } from "@/hooks";
 import { ToolFieldArray } from "./ToolFieldArray";
 
 // ─── Shared styling helpers ───────────────────────────────────────────────────
@@ -119,6 +121,15 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
     formState: { errors, isSubmitting },
   } = methods;
 
+  // ── Draft persistence ────────────────────────────────────────────────────
+  const { hasDraft, clearDraft, onSubmitSuccess: clearDraftOnSuccess } =
+    useFormPersistence({
+      storageKey: "spendpilot:audit-draft",
+      form: methods,
+      schema: partialAuditFormSchema,
+      debounceMs: 600,
+    });
+
   // Live-watch tool rows for the summary strip
   const watchedTools = watch("tools");
   const watchedTeamSize = watch("teamSize");
@@ -150,6 +161,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
 
   const handleFormSubmit = async (data: AuditFormSchema) => {
     await onSubmit(data as AuditFormValues);
+    clearDraftOnSuccess();
     setSubmitSuccess(true);
   };
 
@@ -157,6 +169,27 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
   return (
     <FormProvider {...methods}>
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
+
+        {/* ── Draft restored banner ── */}
+        {hasDraft && !submitSuccess && (
+          <div
+            role="status"
+            className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+          >
+            <div className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+              <span aria-hidden="true">💾</span>
+              <span>Draft restored from your last session.</span>
+            </div>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="shrink-0 text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors"
+              aria-label="Discard saved draft"
+            >
+              Discard
+            </button>
+          </div>
+        )}
 
         {/* ── Header ── */}
         <div className="glass-card px-6 py-5 flex items-start gap-4">
