@@ -18,46 +18,30 @@ import {
 
 interface FieldWrapProps {
   label: string;
+  htmlFor?: string;
   error?: FieldError;
   children: React.ReactNode;
   required?: boolean;
   className?: string;
 }
 
-function FieldWrap({ label, error, children, required, className = "" }: FieldWrapProps) {
+function FieldWrap({ label, htmlFor, error, children, required, className = "" }: FieldWrapProps) {
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wide select-none">
+    <div className={`flex flex-col gap-2 ${className}`}>
+      <label htmlFor={htmlFor} className="field-label">
         {label}
-        {required && <span className="ml-1 text-[var(--destructive)]" aria-hidden="true">*</span>}
+        {required && (
+          <span className="ml-1 text-[var(--destructive)]" aria-hidden="true" title="Required">*</span>
+        )}
       </label>
       {children}
       {error && (
-        <p role="alert" className="flex items-center gap-1 text-xs text-[var(--destructive)] font-medium">
+        <p role="alert" className="flex items-center gap-1 text-xs text-[var(--destructive)] font-medium leading-snug">
           <span aria-hidden="true">⚠</span> {error.message}
         </p>
       )}
     </div>
   );
-}
-
-// ─── Shared input/select class builders ───────────────────────────────────────
-
-function inputCls(hasError?: boolean) {
-  return [
-    "w-full rounded-lg border text-sm px-3 py-2.5 outline-none transition-all",
-    "bg-[var(--input)] text-[var(--foreground)]",
-    "placeholder:text-[var(--muted-foreground)]",
-    "focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent",
-    hasError
-      ? "border-[var(--destructive)]"
-      : "border-[var(--border)] hover:border-[var(--muted-foreground)]/50",
-    "disabled:opacity-50 disabled:cursor-not-allowed",
-  ].join(" ");
-}
-
-function selectCls(hasError?: boolean) {
-  return inputCls(hasError) + " appearance-none cursor-pointer pr-8";
 }
 
 // ─── Single tool row ──────────────────────────────────────────────────────────
@@ -79,12 +63,12 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
 
   return (
     <div
-      className="glass-card p-4 sm:p-5 flex flex-col gap-4 relative group animate-in fade-in slide-in-from-top-2 duration-200"
+      className="glass-card p-4 sm:p-5 flex flex-col gap-4 relative group"
       aria-label={`Tool entry ${index + 1}`}
     >
-      {/* Row number badge */}
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-widest">
+      {/* Row header: number badge + remove */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="field-label">
           Tool #{index + 1}
         </span>
         {canRemove && (
@@ -92,23 +76,29 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
             type="button"
             onClick={() => onRemove(index)}
             aria-label={`Remove tool ${index + 1}`}
-            className="flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors px-2 py-1 rounded-md hover:bg-[var(--destructive)]/10"
+            className="btn-ghost-destructive rounded-md text-xs"
           >
             <RemoveIcon />
-            Remove
+            <span>Remove</span>
           </button>
         )}
       </div>
 
-      {/* Tool + Plan — 2 columns */}
+      {/* Tool + Plan — 2 columns on sm+ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Tool selector */}
-        <FieldWrap label="AI Tool" error={rowErrors?.tool} required>
+        <FieldWrap
+          label="AI Tool"
+          htmlFor={`tools.${index}.tool`}
+          error={rowErrors?.tool}
+          required
+        >
           <div className="relative">
             <select
+              id={`tools.${index}.tool`}
               {...register(`tools.${index}.tool`)}
               aria-invalid={!!rowErrors?.tool}
-              className={selectCls(!!rowErrors?.tool)}
+              className={rowErrors?.tool ? "form-select-error" : "form-select"}
             >
               <option value="">Select tool…</option>
               {AI_TOOLS.map((t) => (
@@ -120,12 +110,18 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
         </FieldWrap>
 
         {/* Plan selector */}
-        <FieldWrap label="Billing Plan" error={rowErrors?.plan} required>
+        <FieldWrap
+          label="Billing Plan"
+          htmlFor={`tools.${index}.plan`}
+          error={rowErrors?.plan}
+          required
+        >
           <div className="relative">
             <select
+              id={`tools.${index}.plan`}
               {...register(`tools.${index}.plan`)}
               aria-invalid={!!rowErrors?.plan}
-              className={selectCls(!!rowErrors?.plan)}
+              className={rowErrors?.plan ? "form-select-error" : "form-select"}
             >
               <option value="">Select plan…</option>
               {PLAN_TIERS.map((p) => (
@@ -137,12 +133,20 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
         </FieldWrap>
       </div>
 
-      {/* Spend + Seats — 2 columns */}
+      {/* Spend + Seats — 2 columns on sm+ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Monthly spend */}
-        <FieldWrap label="Monthly Spend (USD)" error={rowErrors?.monthlySpend} required>
+        <FieldWrap
+          label="Monthly Spend (USD)"
+          htmlFor={`tools.${index}.monthlySpend`}
+          error={rowErrors?.monthlySpend}
+          required
+        >
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] text-sm select-none" aria-hidden="true">
+            <span
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] text-sm select-none"
+              aria-hidden="true"
+            >
               $
             </span>
             <Controller
@@ -157,7 +161,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                   step={0.01}
                   placeholder="0.00"
                   aria-invalid={!!rowErrors?.monthlySpend}
-                  className={inputCls(!!rowErrors?.monthlySpend) + " pl-7"}
+                  className={`${rowErrors?.monthlySpend ? "form-input-error" : "form-input"} pl-8`}
                   value={field.value ?? ""}
                   onChange={(e) =>
                     field.onChange(
@@ -172,7 +176,12 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
         </FieldWrap>
 
         {/* Seats */}
-        <FieldWrap label="Seats / Licenses" error={rowErrors?.seats} required>
+        <FieldWrap
+          label="Seats / Licenses"
+          htmlFor={`tools.${index}.seats`}
+          error={rowErrors?.seats}
+          required
+        >
           <div className="relative">
             <Controller
               name={`tools.${index}.seats`}
@@ -186,7 +195,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                   step={1}
                   placeholder="1"
                   aria-invalid={!!rowErrors?.seats}
-                  className={inputCls(!!rowErrors?.seats) + " pr-14"}
+                  className={`${rowErrors?.seats ? "form-input-error" : "form-input"} pr-14`}
                   value={field.value ?? ""}
                   onChange={(e) =>
                     field.onChange(
@@ -197,7 +206,10 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                 />
               )}
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] text-xs select-none" aria-hidden="true">
+            <span
+              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] text-xs select-none"
+              aria-hidden="true"
+            >
               seats
             </span>
           </div>
@@ -228,25 +240,32 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
   const canAdd = fields.length < maxTools;
   const canRemove = fields.length > 1;
 
+  function addEmptyTool() {
+    append({
+      tool: "" as any,
+      plan: "" as any,
+      monthlySpend: undefined as any,
+      seats: undefined as any,
+    });
+  }
+
   return (
-    <section aria-label="AI tools list" className="flex flex-col gap-3">
+    <section aria-label="AI tools list" className="flex flex-col gap-4">
       {/* Section header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-[var(--foreground)]">
             AI Tools
           </h3>
           <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-            {fields.length} of {maxTools} tools added
+            {fields.length} of {maxTools} added
           </p>
         </div>
         {canAdd && (
           <button
             type="button"
-            onClick={() =>
-              append({ tool: "" as any, plan: "" as any, monthlySpend: undefined as any, seats: undefined as any })
-            }
-            className="premium-btn-secondary text-xs h-8 px-3 flex items-center gap-1.5"
+            onClick={addEmptyTool}
+            className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-xs shrink-0"
             aria-label="Add another AI tool"
           >
             <PlusIcon />
@@ -255,19 +274,15 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
         )}
       </div>
 
-      {/* Root-level tools error (e.g. "Add at least one tool") */}
-      {errors.tools?.root?.message && (
+      {/* Root-level tools array error */}
+      {(errors.tools?.root?.message || typeof errors.tools?.message === "string") && (
         <p role="alert" className="text-xs text-[var(--destructive)] font-medium flex items-center gap-1">
-          <span aria-hidden="true">⚠</span> {errors.tools.root.message}
-        </p>
-      )}
-      {typeof errors.tools?.message === "string" && (
-        <p role="alert" className="text-xs text-[var(--destructive)] font-medium flex items-center gap-1">
-          <span aria-hidden="true">⚠</span> {errors.tools.message}
+          <span aria-hidden="true">⚠</span>
+          {errors.tools?.root?.message ?? errors.tools?.message}
         </p>
       )}
 
-      {/* Rows */}
+      {/* Tool rows */}
       <div className="flex flex-col gap-3">
         {fields.map((field, index) => (
           <ToolRow
@@ -279,14 +294,12 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
         ))}
       </div>
 
-      {/* Bottom add button when many tools */}
+      {/* Repeat add button when list is long (≥3 tools) */}
       {canAdd && fields.length >= 3 && (
         <button
           type="button"
-          onClick={() =>
-            append({ tool: "" as any, plan: "" as any, monthlySpend: undefined as any, seats: undefined as any })
-          }
-          className="premium-btn-secondary text-xs h-8 px-3 flex items-center gap-1.5 self-start"
+          onClick={addEmptyTool}
+          className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-xs self-start"
           aria-label="Add another AI tool"
         >
           <PlusIcon />

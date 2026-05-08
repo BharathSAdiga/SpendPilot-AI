@@ -174,7 +174,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
         {hasDraft && !submitSuccess && (
           <div
             role="status"
-            className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+            className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
           >
             <div className="flex items-center gap-2 text-sm text-[var(--foreground)]">
               <span aria-hidden="true">💾</span>
@@ -183,8 +183,8 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
             <button
               type="button"
               onClick={clearDraft}
-              className="shrink-0 text-xs text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors"
               aria-label="Discard saved draft"
+              className="btn-ghost-destructive rounded-md shrink-0 text-xs !min-h-[36px] !min-w-fit !px-3"
             >
               Discard
             </button>
@@ -266,26 +266,28 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
             aria-label="AI spend audit form"
             className="flex flex-col gap-6"
           >
-            {/* ── Company context ── */}
-            <section className="glass-card px-5 py-5 flex flex-col gap-4">
-              <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">
+            {/* ── Organisation details ── */}
+            <section className="section-card" aria-label="Organisation details">
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">
                 Organisation Details
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Company name */}
-                <div className="flex flex-col gap-1.5">
-                  <FieldLabel htmlFor="companyName" required>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="companyName" className="field-label">
                     Company Name
-                  </FieldLabel>
+                    <span className="ml-1 text-[var(--destructive)]" aria-hidden="true" title="Required">*</span>
+                  </label>
                   <input
                     id="companyName"
                     type="text"
                     placeholder="Acme Corp"
                     autoComplete="organization"
+                    aria-required="true"
                     aria-invalid={!!errors.companyName}
                     disabled={busy}
-                    className={inputCls(!!errors.companyName)}
+                    className={errors.companyName ? "form-input-error" : "form-input"}
                     {...register("companyName")}
                   />
                   {errors.companyName && (
@@ -296,10 +298,11 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                 </div>
 
                 {/* Team size */}
-                <div className="flex flex-col gap-1.5">
-                  <FieldLabel htmlFor="teamSize" required>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="teamSize" className="field-label">
                     Team Size
-                  </FieldLabel>
+                    <span className="ml-1 text-[var(--destructive)]" aria-hidden="true" title="Required">*</span>
+                  </label>
                   <div className="relative">
                     <Controller
                       name="teamSize"
@@ -312,9 +315,10 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                           min={1}
                           step={1}
                           placeholder="50"
+                          aria-required="true"
                           aria-invalid={!!errors.teamSize}
                           disabled={busy}
-                          className={inputCls(!!errors.teamSize) + " pr-16"}
+                          className={`${errors.teamSize ? "form-input-error" : "form-input"} pr-16`}
                           value={field.value ?? ""}
                           onChange={(e) =>
                             field.onChange(
@@ -327,7 +331,10 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                         />
                       )}
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted-foreground)] select-none" aria-hidden="true">
+                    <span
+                      className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--muted-foreground)] select-none"
+                      aria-hidden="true"
+                    >
                       people
                     </span>
                   </div>
@@ -340,26 +347,31 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
               </div>
 
               {/* Primary use case */}
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="primaryUseCase" required>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="primaryUseCase" className="field-label">
                   Primary Use Case
-                </FieldLabel>
+                  <span className="ml-1 text-[var(--destructive)]" aria-hidden="true" title="Required">*</span>
+                </label>
                 <div className="relative">
                   <select
                     id="primaryUseCase"
+                    aria-required="true"
                     aria-invalid={!!errors.primaryUseCase}
                     disabled={busy}
-                    className={selectCls(!!errors.primaryUseCase)}
+                    className={errors.primaryUseCase ? "form-select-error" : "form-select"}
                     {...register("primaryUseCase")}
                   >
-                    <option value="">Select your team's main use case…</option>
+                    <option value="">Select your team’s main use case…</option>
                     {USE_CASES.map((uc) => (
                       <option key={uc} value={uc}>
                         {USE_CASE_LABELS[uc]}
                       </option>
                     ))}
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" aria-hidden="true">
+                  <span
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
+                    aria-hidden="true"
+                  >
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                       <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -383,12 +395,12 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
             <div className="border-t border-[var(--border)]" aria-hidden="true" />
 
             {/* ── Submit ── */}
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="submit"
                 disabled={busy}
                 aria-busy={busy}
-                className="premium-btn-primary flex items-center justify-center gap-2 min-w-[180px]"
+                className="premium-btn-primary w-full sm:w-auto sm:min-w-[200px]"
               >
                 {busy ? (
                   <>
