@@ -13,27 +13,11 @@ export const AI_TOOLS = [
 
 export type AiTool = (typeof AI_TOOLS)[number];
 
-// ─── Plan Tiers ───────────────────────────────────────────────────────────────
-
-export const PLAN_TIERS = [
-  "free",
-  "starter",
-  "pro",
-  "business",
-  "enterprise",
-  "custom",
-] as const;
-
-export type PlanTier = (typeof PLAN_TIERS)[number];
-
-export const PLAN_TIER_LABELS: Record<PlanTier, string> = {
-  free: "Free",
-  starter: "Starter",
-  pro: "Pro",
-  business: "Business",
-  enterprise: "Enterprise",
-  custom: "Custom / Negotiated",
-};
+// ─── Plan Tier ────────────────────────────────────────────────────────────────
+// Plan IDs are free-form strings that must match an entry in the pricing
+// registry (e.g. "pro", "business", "team", "plus", "advanced").
+// Validated at the API layer against PRICING_REGISTRY plan ids.
+export type PlanTier = string;
 
 // ─── Primary Use Cases ────────────────────────────────────────────────────────
 

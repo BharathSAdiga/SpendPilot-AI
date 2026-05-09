@@ -139,11 +139,94 @@ export interface AuditResult {
   /** Total potential savings if all recommendations are followed */
   totalPotentialSavingsUsd: number;
 
+  /** Structured savings projections broken down by horizon and category */
+  savingsProjection: SavingsProjection;
+
   /** The top 3 highest-impact recommendations to show first */
   topRecommendations: AuditFinding[];
 
   /** Which rules were evaluated (for transparency / debugging) */
   rulesEvaluated: string[];
+}
+
+// ─── Savings Projection ─────────────────────────────────────────────────────────────
+
+/**
+ * Action timeline bucket — how quickly the saving can be realised.
+ * - immediate   : can be done in < 1 week (click a button, remove a seat)
+ * - short_term  : 1–4 weeks (plan change negotiation, contract notice period)
+ * - strategic   : 1–6 months (tool migration, team retraining)
+ */
+export type SavingsTimeline = "immediate" | "short_term" | "strategic";
+
+/** Maps a RecommendationAction to its typical implementation timeline. */
+export const ACTION_TIMELINE: Record<RecommendationAction, SavingsTimeline> = {
+  reduce_seats:         "immediate",
+  switch_billing_cycle: "immediate",
+  monitor_usage:        "immediate",
+  downgrade_plan:       "short_term",
+  remove_tool:          "short_term",
+  consolidate_tools:    "strategic",
+  switch_tool:          "strategic",
+  upgrade_plan:         "short_term",
+  no_action:            "strategic",
+};
+
+/**
+ * A single month’s data point for the cumulative savings chart.
+ * `month` is 1-indexed (1 = first month of action).
+ */
+export interface MonthlySavingsPoint {
+  month: number;
+  /** Label, e.g. "Month 1", "Month 6" */
+  label: string;
+  /** Cumulative savings realised up to and including this month */
+  cumulativeSavingsUsd: number;
+  /** Marginal new savings starting this month (some actions take time to kick in) */
+  marginalSavingsUsd: number;
+}
+
+/** Full savings projection attached to every AuditResult. */
+export interface SavingsProjection {
+  // ─ Headline numbers ────────────────────────────────────────────────────────────
+  /** Total monthly saving if every recommendation is actioned */
+  totalMonthlyUsd: number;
+  /** Annualised version of totalMonthlyUsd (simple × 12) */
+  totalAnnualUsd: number;
+  /** Savings achievable within 1 week (immediate actions only) */
+  immediateMonthlyUsd: number;
+  /** Savings achievable within 1 month (immediate + short-term) */
+  shortTermMonthlyUsd: number;
+  /** Remaining savings requiring tool migrations or retraining */
+  strategicMonthlyUsd: number;
+
+  // ─ Percentage impact ─────────────────────────────────────────────────────────
+  /** What % of current spend could be saved (0–100) */
+  savingsRatePct: number;
+
+  // ─ Category breakdown ────────────────────────────────────────────────────────
+  /** Monthly savings per finding category */
+  byCategory: Partial<Record<FindingCategory, number>>;
+  /** Monthly savings per action type */
+  byAction: Partial<Record<RecommendationAction, number>>;
+  /** Monthly savings per implementation timeline */
+  byTimeline: Record<SavingsTimeline, number>;
+
+  // ─ 12-month chart ───────────────────────────────────────────────────────────
+  /** Month-by-month cumulative saving data for the 12-month chart */
+  monthlyChart: MonthlySavingsPoint[];
+
+  // ─ Prioritised action list ─────────────────────────────────────────────────────
+  /** Findings sorted by (timeline asc, savings desc) — the optimal action order */
+  prioritisedActions: PrioritisedAction[];
+}
+
+/** A finding enriched with timeline metadata for the action roadmap. */
+export interface PrioritisedAction {
+  finding: AuditFinding;
+  timeline: SavingsTimeline;
+  /** Cumulative saving achieved if this and all higher-priority actions are done */
+  runningTotalUsd: number;
 }
 
 // ─── Rule interface ───────────────────────────────────────────────────────────

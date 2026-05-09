@@ -7,7 +7,7 @@
  */
 
 import { z } from "zod";
-import { AI_TOOLS, PLAN_TIERS, USE_CASES } from "@/types/audit";
+import { AI_TOOLS, USE_CASES } from "@/types/audit";
 
 // ─── String primitives ─────────────────────────────────────────────────────────
 
@@ -84,10 +84,14 @@ export const aiToolSchema = z.enum(AI_TOOLS, {
   error: "Select a supported AI tool.",
 });
 
-/** One of the 6 billing plan tiers */
-export const planTierSchema = z.enum(PLAN_TIERS, {
-  error: "Select a valid billing plan.",
-});
+/**
+ * Plan ID — a non-empty string matching a plan id in the pricing registry
+ * (e.g. "pro", "business", "team", "plus", "advanced", "pay_as_you_go").
+ * Cross-validated against PRICING_REGISTRY at the engine layer.
+ */
+export const planTierSchema = z
+  .string({ error: "Select a billing plan." })
+  .min(1, "Select a billing plan.");
 
 /** Primary team use case */
 export const useCaseSchema = z.enum(USE_CASES, {

@@ -5,14 +5,12 @@ import {
   useFormContext,
   useFieldArray,
   Controller,
+  useWatch,
   type FieldError,
 } from "react-hook-form";
 import type { AuditFormSchema } from "@/lib/auditSchema";
-import {
-  AI_TOOLS,
-  PLAN_TIERS,
-  PLAN_TIER_LABELS,
-} from "@/types/audit";
+import { AI_TOOLS } from "@/types/audit";
+import { PRICING_REGISTRY } from "@/data/pricingConfig";
 
 // ─── Sub-component: labelled field wrapper ────────────────────────────────────
 
@@ -56,10 +54,18 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
   const {
     register,
     control,
+    setValue,
     formState: { errors },
   } = useFormContext<AuditFormSchema>();
 
   const rowErrors = errors.tools?.[index];
+
+  // Watch the selected tool to dynamically update plan options
+  const selectedTool = useWatch({ control, name: `tools.${index}.tool` });
+  const registryEntry = selectedTool
+    ? PRICING_REGISTRY[selectedTool as keyof typeof PRICING_REGISTRY]
+    : null;
+  const availablePlans = registryEntry?.plans ?? [];
 
   return (
     <div
@@ -68,9 +74,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
     >
       {/* Row header: number badge + remove */}
       <div className="flex items-center justify-between gap-2">
-        <span className="field-label">
-          Tool #{index + 1}
-        </span>
+        <span className="field-label">Tool #{index + 1}</span>
         {canRemove && (
           <button
             type="button"
@@ -87,16 +91,17 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
       {/* Tool + Plan — 2 columns on sm+ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Tool selector */}
-        <FieldWrap
-          label="AI Tool"
-          htmlFor={`tools.${index}.tool`}
-          error={rowErrors?.tool}
-          required
-        >
+        <FieldWrap label="AI Tool" htmlFor={`tools.${index}.tool`} error={rowErrors?.tool} required>
           <div className="relative">
             <select
               id={`tools.${index}.tool`}
-              {...register(`tools.${index}.tool`)}
+              {...register(`tools.${index}.tool`, {
+                onChange: () => {
+                  // Reset plan when tool changes — stale plan IDs from previous tool
+                  // won't match the new tool's registry entry and would silently fail
+                  setValue(`tools.${index}.plan`, "" as any, { shouldValidate: false });
+                },
+              })}
               aria-invalid={!!rowErrors?.tool}
               className={rowErrors?.tool ? "form-select-error" : "form-select"}
             >
@@ -109,23 +114,28 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
           </div>
         </FieldWrap>
 
-        {/* Plan selector */}
-        <FieldWrap
-          label="Billing Plan"
-          htmlFor={`tools.${index}.plan`}
-          error={rowErrors?.plan}
-          required
-        >
+        {/* Plan selector — driven by PRICING_REGISTRY for the selected tool */}
+        <FieldWrap label="Billing Plan" htmlFor={`tools.${index}.plan`} error={rowErrors?.plan} required>
           <div className="relative">
             <select
               id={`tools.${index}.plan`}
               {...register(`tools.${index}.plan`)}
               aria-invalid={!!rowErrors?.plan}
               className={rowErrors?.plan ? "form-select-error" : "form-select"}
+              disabled={!selectedTool}
             >
-              <option value="">Select plan…</option>
-              {PLAN_TIERS.map((p) => (
-                <option key={p} value={p}>{PLAN_TIER_LABELS[p]}</option>
+              <option value="">
+                {selectedTool ? "Select plan…" : "Select a tool first…"}
+              </option>
+              {availablePlans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                  {p.pricing.model === "flat_rate"
+                    ? ` — $${p.pricing.pricePerSeatMonthly}/seat/mo`
+                    : p.pricing.model === "custom"
+                    ? " — Custom pricing"
+                    : " — Usage-based"}
+                </option>
               ))}
             </select>
             <ChevronIcon />
@@ -254,9 +264,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
       {/* Section header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-[var(--foreground)]">
-            AI Tools
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">AI Tools</h3>
           <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
             {fields.length} of {maxTools} added
           </p>
@@ -285,12 +293,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
       {/* Tool rows */}
       <div className="flex flex-col gap-3">
         {fields.map((field, index) => (
-          <ToolRow
-            key={field.id}
-            index={index}
-            onRemove={remove}
-            canRemove={canRemove}
-          />
+          <ToolRow key={field.id} index={index} onRemove={remove} canRemove={canRemove} />
         ))}
       </div>
 
@@ -314,9 +317,18 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
 
 function ChevronIcon() {
   return (
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" aria-hidden="true">
+    <span
+      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
+      aria-hidden="true"
+    >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M3 5l4 4 4-4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </span>
   );

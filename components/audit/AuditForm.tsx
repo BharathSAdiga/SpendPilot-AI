@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { auditFormSchema, type AuditFormSchema } from "@/lib/auditSchema";
@@ -15,6 +16,7 @@ import {
 } from "@/types/audit";
 import { useFormPersistence } from "@/hooks";
 import { ToolFieldArray } from "./ToolFieldArray";
+import type { AuditResult } from "@/types/auditEngine";
 
 // ─── Shared styling helpers ───────────────────────────────────────────────────
 
@@ -90,14 +92,17 @@ function FieldLabel({
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
 export interface AuditFormProps {
-  /** Called with validated data on successful submit */
-  onSubmit: (data: AuditFormValues) => void | Promise<void>;
+  /** Optional callback — if omitted the form POSTs to /api/audit directly */
+  onSubmit?: (data: AuditFormValues) => void | Promise<void>;
   /** Put the form into loading/saving state */
   isLoading?: boolean;
 }
 
 export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
+  const router = useRouter();
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const methods = useForm<AuditFormSchema>({
     resolver: zodResolver(auditFormSchema),
@@ -160,7 +165,36 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
   const busy = isSubmitting || isLoading;
 
   const handleFormSubmit = async (data: AuditFormSchema) => {
-    await onSubmit(data as AuditFormValues);
+    setApiError(null);
+    try {
+      if (onSubmit) {
+        await onSubmit(data as AuditFormValues);
+      } else {
+        // Default: POST to backend audit API
+        const res = await fetch("/api/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.error ?? `Server error ${res.status}`);
+        }
+        const result: AuditResult = await res.json();
+        // Store in sessionStorage so the report page can read it
+        const id = `${Date.now()}`;
+        sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify(result));
+        setReportId(id);
+        clearDraftOnSuccess();
+        setSubmitSuccess(true);
+        // Navigate to live report
+        router.push(`/report/${id}`);
+        return;
+      }
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      return;
+    }
     clearDraftOnSuccess();
     setSubmitSuccess(true);
   };
@@ -238,6 +272,14 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
           </div>
         )}
 
+        {/* ── API error banner ── */}
+        {apiError && (
+          <div role="alert" className="flex items-center gap-3 rounded-xl border border-[var(--destructive)]/40 bg-[var(--destructive)]/10 px-4 py-3 text-sm text-[var(--destructive)]">
+            <span aria-hidden="true">⚠</span>
+            <span>{apiError}</span>
+          </div>
+        )}
+
         {/* ── Success state ── */}
         {submitSuccess ? (
           <div
@@ -246,15 +288,23 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
           >
             <span className="text-3xl" aria-hidden="true">✅</span>
             <h3 className="text-base font-semibold text-[var(--foreground)]">
-              Audit submitted!
+              Audit complete!
             </h3>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Your AI spend data has been captured. Head to Reports to see your breakdown.
+              Redirecting you to your report…
             </p>
+            {reportId && (
+              <a
+                href={`/report/${reportId}`}
+                className="premium-btn-primary mt-2"
+              >
+                View Report →
+              </a>
+            )}
             <button
               type="button"
-              onClick={() => setSubmitSuccess(false)}
-              className="premium-btn-secondary mt-2"
+              onClick={() => { setSubmitSuccess(false); setReportId(null); }}
+              className="premium-btn-secondary"
             >
               Submit Another
             </button>

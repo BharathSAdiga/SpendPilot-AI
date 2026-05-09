@@ -21,11 +21,11 @@ const SEAT_LIMITS: Record<string, { max: number }> = {
   any: { max: Infinity },
 };
 
-// Tools that overlap in function
+// Tools that overlap in function — groups where paying for 2+ is likely wasteful
 const OVERLAP_GROUPS: string[][] = [
-  ["Cursor", "Windsurf", "GitHub Copilot"],   // coding assistants
-  ["ChatGPT", "Claude", "Gemini"],            // general chat
-  ["OpenAI API", "Anthropic API"],            // API platforms
+  ["Cursor", "Windsurf", "GitHub Copilot"],          // coding assistants / AI IDEs
+  ["ChatGPT", "Claude", "Gemini"],                   // general-purpose chat assistants
+  ["OpenAI API", "Anthropic API"],                   // API platforms (same class of product)
 ];
 
 // ─── Rule 1: Small team on enterprise/business plan ───────────────────────────
@@ -275,7 +275,76 @@ const lightweightOverspend: AuditRule = {
   },
 };
 
-// ─── Rule 6: Overlapping tools in the same category ──────────────────────────
+// ─── Rule 6b: Underutilized plan ────────────────────────────────────────────────────────────
+
+/**
+ * Fires when the reported monthly spend is well below what the selected plan
+ * implies. Signals the tool is barely used — consider the free tier or a lower
+ * plan before renewing.
+ *
+ * Threshold: actual spend < 40% of expected spend (seats × per-seat price).
+ * Minimum gap: $15/mo to avoid noise on cheap tools.
+ */
+const underutilizedPlan: AuditRule = {
+  id: "underutilized-plan",
+  name: "Plan appears underutilized",
+  scope: "per_tool",
+  evaluate({ toolEntry }: RuleContext): AuditFinding[] {
+    if (!toolEntry) return [];
+    const entry = findPricingEntry(toolEntry.tool);
+    if (!entry) return [];
+
+    const plan = entry.plans.find((p) => p.id === toolEntry.plan);
+    if (!plan || plan.pricing.model !== "flat_rate") return [];
+
+    const expectedSpend = plan.pricing.pricePerSeatMonthly * toolEntry.seats;
+    if (expectedSpend <= 0) return [];
+
+    const utilRatio = toolEntry.monthlySpend / expectedSpend;
+    const gap = expectedSpend - toolEntry.monthlySpend;
+
+    // Paying < 40% of what the plan costs with a gap of at least $15
+    if (utilRatio < 0.4 && gap >= 15) {
+      // Find the free plan or cheapest alternative
+      const freePlan = entry.plans.find((p) => p.id === "free" || p.pricing.model === "flat_rate" && p.pricing.pricePerSeatMonthly === 0);
+      const cheaperPlans = entry.plans
+        .filter((p) => p.pricing.model === "flat_rate" && p.pricing.pricePerSeatMonthly < plan.pricing.pricePerSeatMonthly)
+        .sort((a, b) => {
+          const aPrice = a.pricing.model === "flat_rate" ? a.pricing.pricePerSeatMonthly : Infinity;
+          const bPrice = b.pricing.model === "flat_rate" ? b.pricing.pricePerSeatMonthly : Infinity;
+          return bPrice - aPrice; // highest of the cheaper options first
+        });
+
+      const suggested = cheaperPlans[0] ?? freePlan;
+      const savings = suggested && suggested.pricing.model === "flat_rate"
+        ? (plan.pricing.pricePerSeatMonthly - suggested.pricing.pricePerSeatMonthly) * toolEntry.seats
+        : gap;
+
+      return [{
+        id: id("underutilized-plan", toolEntry.tool),
+        ruleId: "underutilized-plan",
+        toolId: toolEntry.tool,
+        toolName: entry.name,
+        severity: savings > 50 ? "warning" : "info",
+        category: "underutilized",
+        title: `${entry.name}: Spend ($${toolEntry.monthlySpend.toFixed(0)}/mo) is ${Math.round(utilRatio * 100)}% of plan cost — plan may be underutilized`,
+        reasoning: `You\'re on the "${plan.label}" plan ($${expectedSpend.toFixed(2)}/mo for ${toolEntry.seats} seat${toolEntry.seats !== 1 ? "s" : ""}) but only spending $${toolEntry.monthlySpend.toFixed(2)}/mo — just ${Math.round(utilRatio * 100)}% of capacity. This typically means the team isn\'t making full use of the plan\'s capabilities. Consider downgrading until utilisation increases.`,
+        action: suggested ? "downgrade_plan" : "monitor_usage",
+        actionDescription: suggested
+          ? `Downgrade to "${suggested.label}" (${formatPlanPrice(suggested)}) and save $${savings.toFixed(0)}/mo`
+          : "Review actual usage before next renewal and consider switching to a lower tier",
+        estimatedMonthlySavingsUsd: Math.max(0, savings),
+        suggestedPlanId: suggested?.id,
+        suggestedPlanLabel: suggested?.label,
+        meta: { expectedSpend, actualSpend: toolEntry.monthlySpend, utilPct: Math.round(utilRatio * 100) },
+      }];
+    }
+
+    return [];
+  },
+};
+
+// ─── Rule 7: Overlapping tools in the same category ──────────────────────────
 
 const overlappingTools: AuditRule = {
   id: "overlapping-tools",
@@ -388,5 +457,6 @@ export const AUDIT_RULES: AuditRule[] = [
   annualBillingSavings,
   excessSeats,
   lightweightOverspend,
+  underutilizedPlan,
   freePlanWithSpend,
 ];

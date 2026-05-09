@@ -1,13 +1,5 @@
 import React from "react";
 import { AuditForm } from "@/components/audit";
-import type { AuditFormValues } from "@/types/audit";
-
-// ─── Server action stub — swap for real API call / server action ──────────────
-async function submitAudit(data: AuditFormValues): Promise<void> {
-  "use server";
-  // TODO: persist to DB / call API
-  console.log("[AuditPage] Submitted audit:", JSON.stringify(data, null, 2));
-}
 
 export const metadata = {
   title: "Run Spend Audit — SpendPilot AI",
@@ -29,8 +21,8 @@ export default function AuditPage() {
         </p>
       </div>
 
-      {/* ── Dynamic audit form ── */}
-      <AuditForm onSubmit={submitAudit} />
+      {/* ── Form POSTs to /api/audit, stores result, redirects to live report ── */}
+      <AuditForm />
     </main>
   );
 }

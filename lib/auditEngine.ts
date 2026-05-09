@@ -10,9 +10,14 @@ import type {
   AuditFinding,
   AuditResult,
   FindingSeverity,
+  MonthlySavingsPoint,
+  PrioritisedAction,
   RuleContext,
+  SavingsProjection,
+  SavingsTimeline,
   ToolAuditSummary,
 } from "@/types/auditEngine";
+import { ACTION_TIMELINE } from "@/types/auditEngine";
 import { AUDIT_RULES } from "@/lib/auditRules";
 import { totalMonthlySpend } from "@/types/audit";
 
@@ -23,6 +28,113 @@ const SEVERITY_RANK: Record<FindingSeverity, number> = {
   warning: 1,
   info: 2,
 };
+
+// ─── Savings projection ──────────────────────────────────────────────────────────────
+
+const TIMELINE_ORDER: SavingsTimeline[] = ["immediate", "short_term", "strategic"];
+
+/**
+ * Month in which a timeline bucket’s savings start flowing.
+ * Immediate = month 1, short-term = month 2, strategic = month 4.
+ */
+const TIMELINE_START_MONTH: Record<SavingsTimeline, number> = {
+  immediate: 1,
+  short_term: 2,
+  strategic: 4,
+};
+
+function computeSavingsProjection(
+  findings: AuditFinding[],
+  totalCurrentSpend: number
+): SavingsProjection {
+  // Only findings with actual savings contribute
+  const actionable = findings.filter((f) => f.estimatedMonthlySavingsUsd > 0);
+
+  // ─ Headline buckets ──────────────────────────────────────────────────────────
+  const byTimeline: Record<SavingsTimeline, number> = {
+    immediate: 0,
+    short_term: 0,
+    strategic: 0,
+  };
+
+  for (const f of actionable) {
+    const bucket = ACTION_TIMELINE[f.action] ?? "strategic";
+    byTimeline[bucket] += f.estimatedMonthlySavingsUsd;
+  }
+
+  const totalMonthlyUsd = Object.values(byTimeline).reduce((s, v) => s + v, 0);
+  const totalAnnualUsd  = totalMonthlyUsd * 12;
+  const immediateMonthlyUsd  = byTimeline.immediate;
+  const shortTermMonthlyUsd  = byTimeline.immediate + byTimeline.short_term;
+  const strategicMonthlyUsd  = byTimeline.strategic;
+  const savingsRatePct = totalCurrentSpend > 0
+    ? Math.min(100, (totalMonthlyUsd / totalCurrentSpend) * 100)
+    : 0;
+
+  // ─ Category + action breakdown ────────────────────────────────────────────────
+  const byCategory: SavingsProjection["byCategory"] = {};
+  const byAction:   SavingsProjection["byAction"]   = {};
+
+  for (const f of actionable) {
+    byCategory[f.category] = (byCategory[f.category] ?? 0) + f.estimatedMonthlySavingsUsd;
+    byAction[f.action]     = (byAction[f.action]     ?? 0) + f.estimatedMonthlySavingsUsd;
+  }
+
+  // ─ 12-month cumulative chart ──────────────────────────────────────────────────
+  // Each timeline bucket’s savings begin flowing from its start month.
+  // Month 0 = before any action (cumulative = 0).
+  const monthlyChart: MonthlySavingsPoint[] = [];
+  let cumulative = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    let marginal = 0;
+    for (const bucket of TIMELINE_ORDER) {
+      if (m === TIMELINE_START_MONTH[bucket]) {
+        marginal += byTimeline[bucket];
+      }
+    }
+    cumulative += marginal;
+    monthlyChart.push({
+      month: m,
+      label: m === 1 ? "Month 1" : m === 12 ? "Month 12" : `Month ${m}`,
+      cumulativeSavingsUsd: cumulative,
+      marginalSavingsUsd: marginal,
+    });
+  }
+
+  // ─ Prioritised action list ─────────────────────────────────────────────────────
+  // Sort: timeline asc (immediate first), then savings desc within each bucket
+  const sorted = [...actionable].sort((a, b) => {
+    const ta = TIMELINE_ORDER.indexOf(ACTION_TIMELINE[a.action] ?? "strategic");
+    const tb = TIMELINE_ORDER.indexOf(ACTION_TIMELINE[b.action] ?? "strategic");
+    if (ta !== tb) return ta - tb;
+    return b.estimatedMonthlySavingsUsd - a.estimatedMonthlySavingsUsd;
+  });
+
+  let running = 0;
+  const prioritisedActions: PrioritisedAction[] = sorted.map((f) => {
+    running += f.estimatedMonthlySavingsUsd;
+    return {
+      finding:        f,
+      timeline:       ACTION_TIMELINE[f.action] ?? "strategic",
+      runningTotalUsd: running,
+    };
+  });
+
+  return {
+    totalMonthlyUsd,
+    totalAnnualUsd,
+    immediateMonthlyUsd,
+    shortTermMonthlyUsd,
+    strategicMonthlyUsd,
+    savingsRatePct,
+    byCategory,
+    byAction,
+    byTimeline,
+    monthlyChart,
+    prioritisedActions,
+  };
+}
 
 // ─── Efficiency score ─────────────────────────────────────────────────────────
 
@@ -144,6 +256,7 @@ export function runAudit(input: AuditFormValues): AuditResult {
     findingCounts,
     totalMonthlySpendUsd: totalSpend,
     totalPotentialSavingsUsd: totalSavings,
+    savingsProjection: computeSavingsProjection(deduped, totalSpend),
     topRecommendations: deduped.slice(0, 3),
     rulesEvaluated,
   };
