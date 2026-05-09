@@ -225,15 +225,20 @@ function ActionRoadmap({ actions }: { actions: PrioritisedAction[] }) {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function SavingsProjectionPanel({ projection, currentSpend }: {
-  projection: SavingsProjection;
+  projection: SavingsProjection | undefined;
   currentSpend: number;
 }) {
   const [view, setView] = useState<"monthly" | "annual">("monthly");
+
+  // Guard against stale sessionStorage reports that pre-date this field
+  if (!projection) return null;
+
   const {
     totalMonthlyUsd, totalAnnualUsd,
     immediateMonthlyUsd, shortTermMonthlyUsd, strategicMonthlyUsd,
     savingsRatePct, byCategory, prioritisedActions,
   } = projection;
+
 
   const optimisedSpend = currentSpend - totalMonthlyUsd;
 
