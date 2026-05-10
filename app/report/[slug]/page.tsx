@@ -6,6 +6,7 @@ import type { AuditResult } from "@/types/auditEngine";
 import { SavingsProjectionPanel } from "@/components/report/SavingsProjection";
 import { SavingsHero } from "@/components/report/SavingsHero";
 import { RecommendationList } from "@/components/report/RecommendationCard";
+import { SpendCharts } from "@/components/report/SpendCharts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -239,6 +240,13 @@ function LiveReport({ result }: { result: AuditResult }) {
             </div>
           </div>
         </div>
+
+        {/* ── Spend Charts ── */}
+        <SpendCharts
+          toolSummaries={toolSummaries}
+          totalMonthlySpend={totalMonthlySpendUsd}
+          projection={result.savingsProjection}
+        />
 
         {/* ── Savings Hero (annual projection) ── */}
         <SavingsHero
