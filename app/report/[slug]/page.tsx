@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import type { AuditResult, AuditFinding } from "@/types/auditEngine";
+import type { AuditResult } from "@/types/auditEngine";
 import { SavingsProjectionPanel } from "@/components/report/SavingsProjection";
 import { SavingsHero } from "@/components/report/SavingsHero";
+import { RecommendationList } from "@/components/report/RecommendationCard";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,23 +16,7 @@ function fmt(n: number) {
   });
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "text-red-500 border-red-500/30 bg-red-500/10",
-  warning:  "text-yellow-500 border-yellow-500/30 bg-yellow-500/10",
-  info:     "text-blue-400 border-blue-400/30 bg-blue-400/10",
-};
 
-const ACTION_LABELS: Record<string, string> = {
-  downgrade_plan:       "Downgrade Plan",
-  switch_billing_cycle: "Switch to Annual",
-  reduce_seats:         "Reduce Seats",
-  consolidate_tools:    "Consolidate Tools",
-  switch_tool:          "Switch Tool",
-  monitor_usage:        "Monitor Usage",
-  remove_tool:          "Remove Tool",
-  upgrade_plan:         "Upgrade Plan",
-  no_action:            "No Action",
-};
 
 // ─── Score ring ───────────────────────────────────────────────────────────────
 
@@ -63,48 +48,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ─── Finding card ─────────────────────────────────────────────────────────────
-
-function FindingCard({ f }: { f: AuditFinding }) {
-  const [open, setOpen] = useState(false);
-  const cls = SEVERITY_COLORS[f.severity] ?? SEVERITY_COLORS.info;
-  return (
-    <div className={`glass-card p-5 border ${cls} flex flex-col gap-3`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${cls}`}>
-            {f.severity}
-          </span>
-          {f.estimatedMonthlySavingsUsd > 0 && (
-            <span className="text-[10px] font-semibold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
-              Save ${fmt(f.estimatedMonthlySavingsUsd)}/mo
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={open ? "Collapse" : "Expand details"}
-        >
-          {open ? "▲ Hide" : "▼ Details"}
-        </button>
-      </div>
-      <p className="font-semibold text-foreground text-sm leading-snug">{f.title}</p>
-      {open && (
-        <>
-          <p className="text-sm text-muted-foreground leading-relaxed">{f.reasoning}</p>
-          <div className="flex items-center gap-2 pt-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Action</span>
-            <span className="text-xs font-medium text-foreground bg-white/5 border border-border px-2 py-0.5 rounded">
-              {ACTION_LABELS[f.action] ?? f.action}
-            </span>
-            <span className="text-xs text-muted-foreground">{f.actionDescription}</span>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+// FindingCard replaced by RecommendationCard — see components/report/RecommendationCard.tsx
 
 // ─── Loading / Error states ───────────────────────────────────────────────────
 
@@ -309,25 +253,34 @@ function LiveReport({ result }: { result: AuditResult }) {
           currentSpend={totalMonthlySpendUsd}
         />
 
-        {/* ── All findings ── */}
-        {allFindings.length > 0 && (
-          <div className="flex flex-col gap-4">
+        {/* ── Recommendations ── */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
             <h3 className="font-semibold text-xl text-foreground">
-              All Findings ({allFindings.length})
+              Recommendations
+              {allFindings.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({allFindings.length} finding{allFindings.length !== 1 ? "s" : ""})
+                </span>
+              )}
             </h3>
-            {allFindings.map((f) => (
-              <FindingCard key={f.id} f={f} />
-            ))}
+            {allFindings.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                Ordered by severity · highest impact first
+              </span>
+            )}
           </div>
-        )}
-
-        {allFindings.length === 0 && (
-          <div className="glass-card p-10 text-center flex flex-col items-center gap-3">
-            <span className="text-4xl">🎉</span>
-            <h3 className="text-xl font-bold text-foreground">No issues found!</h3>
-            <p className="text-muted-foreground">Your AI tool stack looks well-optimised. Keep it up!</p>
-          </div>
-        )}
+          <RecommendationList
+            findings={allFindings}
+            toolPlanMap={Object.fromEntries(
+              toolSummaries.map((ts) => [
+                ts.toolEntry.tool,
+                `${ts.toolEntry.tool} (${ts.toolEntry.plan})`,
+              ])
+            )}
+            initialVisible={5}
+          />
+        </div>
 
       </div>
     </div>
