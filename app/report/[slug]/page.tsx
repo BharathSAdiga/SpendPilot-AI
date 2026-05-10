@@ -7,6 +7,7 @@ import { SavingsProjectionPanel } from "@/components/report/SavingsProjection";
 import { SavingsHero } from "@/components/report/SavingsHero";
 import { RecommendationList } from "@/components/report/RecommendationCard";
 import { SpendCharts } from "@/components/report/SpendCharts";
+import { AuditSummaryPanel } from "@/components/report/AuditSummaryPanel";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,9 @@ function LiveReport({ result }: { result: AuditResult }) {
             New Audit
           </Link>
         </div>
+
+        {/* ── AI Executive Summary ── */}
+        <AuditSummaryPanel result={result} />
 
         {/* ── Summary cards ── */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
