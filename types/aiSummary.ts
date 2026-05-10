@@ -67,6 +67,9 @@ export interface AuditSummaryResult {
 
   /** Approximate completion token usage */
   outputTokens: number;
+
+  /** True if the API failed and a deterministic local fallback was used */
+  isFallback?: boolean;
 }
 
 // ─── API response envelope ────────────────────────────────────────────────────

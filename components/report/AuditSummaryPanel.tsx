@@ -125,8 +125,12 @@ function SummaryDisplay({ summary }: { summary: AuditSummaryResult }) {
         <span>Generated {date}</span>
         <span>·</span>
         <span>{summary.model}</span>
-        <span>·</span>
-        <span>{summary.inputTokens + summary.outputTokens} tokens used</span>
+        {!summary.isFallback && (
+          <>
+            <span>·</span>
+            <span>{summary.inputTokens + summary.outputTokens} tokens used</span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -170,9 +174,18 @@ export function AuditSummaryPanel({ result }: AuditSummaryPanelProps) {
             <SparkleIcon />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-foreground">AI Audit Summary</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground">AI Audit Summary</h3>
+              {summary?.isFallback && (
+                <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-yellow-500 bg-yellow-500/10 border border-yellow-500/20">
+                  Fallback Mode
+                </span>
+              )}
+            </div>
             <p className="text-[10px] text-muted-foreground">
-              Powered by Claude · Server-generated
+              {summary?.isFallback 
+                ? "Generated locally due to API failure" 
+                : "Powered by Claude · Server-generated"}
             </p>
           </div>
         </div>

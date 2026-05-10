@@ -41,6 +41,36 @@ function buildRequest(result: AuditResult): SummaryRequest {
   };
 }
 
+/** Generates a deterministic local fallback if the API fails */
+function buildFallbackSummary(req: SummaryRequest): AuditSummaryResult {
+  const fmtUsd = (n: number) =>
+    `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+
+  const executive = `Our audit identified ${req.findingCounts.total} findings with a total savings opportunity of ${fmtUsd(req.totalAnnualSavingsUsd)} per year. Your current portfolio score is ${req.overallScore}/100, indicating ${req.overallScore >= 75 ? "strong efficiency with minor optimizations available" : req.overallScore >= 50 ? "moderate efficiency with clear areas for improvement" : "significant opportunities to reduce wasted spend"}.`;
+
+  const topActions = req.topFindings.length > 0
+    ? req.topFindings.map(f => `${f.action.replace(/_/g, " ")}: ${f.title} to save ${fmtUsd(f.monthlySavingUsd)}/mo`)
+    : ["No critical actions required at this time.", "Continue monitoring tool usage.", "Maintain current plan tiers."];
+
+  // Ensure we always have exactly 3 top actions for UI consistency
+  while (topActions.length < 3) {
+    topActions.push("Review remaining tools for potential consolidation.");
+  }
+
+  const outlook = `Implementing these recommendations will reduce your monthly spend by ${req.savingsRatePct.toFixed(0)}%, recovering ${fmtUsd(req.totalPotentialSavingsUsd)} monthly for redeployment.`;
+
+  return {
+    executive,
+    topActions: topActions.slice(0, 3),
+    outlook,
+    generatedAt: new Date().toISOString(),
+    model: "Local Fallback Model",
+    inputTokens: 0,
+    outputTokens: 0,
+    isFallback: true,
+  };
+}
+
 export function useAuditSummary() {
   const [state, setState] = useState<SummaryState>({ status: "idle" });
 
@@ -48,25 +78,25 @@ export function useAuditSummary() {
     setState({ status: "loading" });
 
     try {
+      const payload = buildRequest(result);
       const res = await fetch("/api/summary", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(buildRequest(result)),
+        body:    JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
-      if (!res.ok || !data.ok) {
-        setState({ status: "error", error: data.error ?? "Unknown error" });
+      if (!res.ok || !data?.ok) {
+        console.warn("API failed, using local fallback summary:", data?.error || res.statusText);
+        setState({ status: "success", summary: buildFallbackSummary(payload) });
         return;
       }
 
       setState({ status: "success", summary: data.summary });
     } catch (err) {
-      setState({
-        status: "error",
-        error: err instanceof Error ? err.message : "Network error",
-      });
+      console.warn("Network error, using local fallback summary:", err);
+      setState({ status: "success", summary: buildFallbackSummary(buildRequest(result)) });
     }
   }, []);
 
