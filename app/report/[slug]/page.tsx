@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AuditResult, AuditFinding } from "@/types/auditEngine";
 import { SavingsProjectionPanel } from "@/components/report/SavingsProjection";
+import { SavingsHero } from "@/components/report/SavingsHero";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -295,7 +296,14 @@ function LiveReport({ result }: { result: AuditResult }) {
           </div>
         </div>
 
-        {/* ── Savings Projections ── */}
+        {/* ── Savings Hero (annual projection) ── */}
+        <SavingsHero
+          projection={result.savingsProjection}
+          currentSpend={totalMonthlySpendUsd}
+          companyName={input.companyName}
+        />
+
+        {/* ── Savings Projections (detail panel) ── */}
         <SavingsProjectionPanel
           projection={result.savingsProjection}
           currentSpend={totalMonthlySpendUsd}
@@ -365,9 +373,17 @@ function DemoReport() {
           <div className="glass-card p-6 border-green-500/20">
             <h3 className="tracking-tight text-sm font-medium text-muted-foreground">Potential Savings</h3>
             <div className="text-3xl font-bold mt-3 text-green-500">$8,900.00/mo</div>
-            <p className="text-xs text-muted-foreground mt-2">Via downgrades & consolidation</p>
+            <p className="text-xs text-muted-foreground mt-2">Via downgrades &amp; consolidation</p>
           </div>
         </div>
+
+        {/* ── Savings Hero — demo projection ── */}
+        <SavingsHero
+          projection={DEMO_PROJECTION}
+          currentSpend={45231}
+          companyName="demo"
+        />
+
         <div className="glass-card p-8 text-center flex flex-col items-center gap-4">
           <span className="text-4xl">🚀</span>
           <h3 className="text-xl font-bold text-foreground">This is a demo report</h3>
@@ -380,3 +396,44 @@ function DemoReport() {
     </div>
   );
 }
+
+// ─── Demo projection fixture ───────────────────────────────────────────────────
+// Mirrors the static $8,900/mo · $106,800/yr figures shown in the summary cards.
+// Timeline start months: immediate → M1, short_term → M2, strategic → M4.
+
+const DEMO_PROJECTION: import("@/types/auditEngine").SavingsProjection = {
+  totalMonthlyUsd:     8900,
+  totalAnnualUsd:      106800,
+  immediateMonthlyUsd: 3200,
+  shortTermMonthlyUsd: 5400,   // immediate + short_term combined
+  strategicMonthlyUsd: 3500,
+  savingsRatePct:      19.7,
+  byCategory: {
+    seat_mismatch:   3200,
+    overplan:        2100,
+    overlap:         1800,
+    annual_savings:  1800,
+  },
+  byAction: {
+    reduce_seats:         3200,
+    downgrade_plan:       2100,
+    consolidate_tools:    1800,
+    switch_billing_cycle: 1800,
+  },
+  byTimeline: { immediate: 3200, short_term: 2200, strategic: 3500 },
+  monthlyChart: (() => {
+    const byTl: Record<string, number> = { immediate: 3200, short_term: 2200, strategic: 3500 };
+    const starts: Record<string, number> = { immediate: 1, short_term: 2, strategic: 4 };
+    let cum = 0;
+    return Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const marginal = Object.entries(byTl).reduce(
+        (s, [k, v]) => s + (m === starts[k] ? v : 0),
+        0
+      );
+      cum += marginal;
+      return { month: m, label: `Month ${m}`, cumulativeSavingsUsd: cum, marginalSavingsUsd: marginal };
+    });
+  })(),
+  prioritisedActions: [],
+};
