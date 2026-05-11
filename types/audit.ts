@@ -58,6 +58,7 @@ export interface AuditFormValues {
   companyName: string;
   teamSize: number;
   primaryUseCase: UseCase;
+  email?: string;
   tools: AuditToolEntry[];
 }
 
