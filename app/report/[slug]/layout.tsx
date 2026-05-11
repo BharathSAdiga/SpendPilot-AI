@@ -25,17 +25,27 @@ export async function generateMetadata({
       };
     }
 
+    const savingsFormatted = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(audit.total_potential_savings_usd);
+
+    const desc = `View the AI-powered SaaS spend audit for ${audit.company_name}. We identified ${savingsFormatted}/mo in potential savings across ${audit.tools_audited_count} tools.`;
+
     return {
       title: `SpendPilot Report: ${audit.company_name}`,
-      description: `View the AI-powered SaaS spend audit for ${audit.company_name}. Potential savings: $${audit.total_potential_savings_usd}/mo.`,
+      description: desc,
       openGraph: {
         title: `SpendPilot Report: ${audit.company_name}`,
-        description: `View the AI-powered SaaS spend audit for ${audit.company_name}. Potential savings: $${audit.total_potential_savings_usd}/mo.`,
+        description: desc,
+        siteName: "SpendPilot AI",
+        type: "website",
       },
       twitter: {
         card: "summary_large_image",
         title: `SpendPilot Report: ${audit.company_name}`,
-        description: `View the AI-powered SaaS spend audit for ${audit.company_name}. Potential savings: $${audit.total_potential_savings_usd}/mo.`,
+        description: desc,
       },
     };
   } catch (error) {
