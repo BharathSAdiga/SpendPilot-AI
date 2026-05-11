@@ -24,6 +24,14 @@ export type DbLeadStatus = "new" | "contacted" | "qualified" | "converted" | "ch
 
 // ─── Row types (shape of a SELECT *) ────────────────────────────────────────
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface AuditRow {
   id:                          string;
   user_id:                     string | null;
@@ -32,8 +40,8 @@ export interface AuditRow {
   company_name:                string;
   team_size:                   number;
   primary_use_case:            DbPrimaryUseCase;
-  input_snapshot:              Record<string, unknown>;  // AuditFormValues JSON
-  result_snapshot:             Record<string, unknown>;  // AuditResult JSON
+  input_snapshot:              Json;  // AuditFormValues JSON
+  result_snapshot:             Json;  // AuditResult JSON
   overall_score:               number;
   total_monthly_spend_usd:     number;
   total_potential_savings_usd: number;
@@ -98,11 +106,13 @@ export interface Database {
         Row:    AuditRow;
         Insert: AuditInsert;
         Update: AuditUpdate;
+        Relationships: any[];
       };
       leads: {
         Row:    LeadRow;
         Insert: LeadInsert;
         Update: LeadUpdate;
+        Relationships: any[];
       };
     };
     Enums: {

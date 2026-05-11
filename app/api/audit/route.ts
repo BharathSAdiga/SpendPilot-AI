@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditFormSchema } from "@/lib/auditSchema";
 import { runAudit } from "@/lib/auditEngine";
+import { insertAudit, setAuditPublic } from "@/lib/supabase/audits";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -27,6 +28,17 @@ export async function POST(req: NextRequest) {
   }
 
   const result = runAudit(parsed.data);
+  let public_token: string | undefined;
 
-  return NextResponse.json(result, { status: 200 });
+  try {
+    const row = await insertAudit(parsed.data, result);
+    // Make it public by default for the MVP so share links work
+    await setAuditPublic(row.id, true);
+    public_token = row.public_token;
+  } catch (error) {
+    console.error("[audit] Failed to persist to Supabase:", error);
+    // Continue execution, client will fallback to local sessionStorage
+  }
+
+  return NextResponse.json({ result, public_token }, { status: 200 });
 }

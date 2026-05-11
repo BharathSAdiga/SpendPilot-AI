@@ -180,9 +180,13 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err?.error ?? `Server error ${res.status}`);
         }
-        const result: AuditResult = await res.json();
-        // Store in sessionStorage so the report page can read it
-        const id = `${Date.now()}`;
+        const responseData = await res.json();
+        const result: AuditResult = responseData.result || responseData; // Fallback in case backend doesn't wrap
+        
+        // Use the Supabase-generated token as the slug, fallback to timestamp if it failed
+        const id = responseData.public_token || `${Date.now()}`;
+        
+        // Store in sessionStorage so the report page can read it immediately
         sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify(result));
         setReportId(id);
         clearDraftOnSuccess();

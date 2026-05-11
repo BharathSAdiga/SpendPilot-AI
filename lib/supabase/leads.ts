@@ -39,7 +39,8 @@ export async function captureLead(payload: {
 
   const { data, error } = await supabase
     .from("leads")
-    .upsert(insert, { onConflict: "email", ignoreDuplicates: false })
+    // @ts-ignore
+    .upsert(insert as any, { onConflict: "email", ignoreDuplicates: false })
     .select()
     .single();
 
@@ -60,7 +61,8 @@ export async function linkLeadToUser(
   const update: LeadUpdate = { user_id: userId };
   const { error } = await admin
     .from("leads")
-    .update(update)
+    // @ts-ignore
+    .update(update as any)
     .eq("id", leadId);
 
   if (error) throw new Error(`[supabase] linkLeadToUser failed: ${error.message}`);
@@ -80,7 +82,8 @@ export async function updateLeadStatus(
   const update: LeadUpdate = { status, ...(notes ? { notes } : {}) };
   const { error } = await admin
     .from("leads")
-    .update(update)
+    // @ts-ignore
+    .update(update as any)
     .eq("id", leadId);
 
   if (error) throw new Error(`[supabase] updateLeadStatus failed: ${error.message}`);

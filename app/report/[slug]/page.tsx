@@ -73,8 +73,8 @@ function NotFoundState({ slug }: { slug: string }) {
       <div>
         <h2 className="text-2xl font-bold text-foreground">Report not found</h2>
         <p className="text-muted-foreground mt-2">
-          No audit data found for <code className="text-primary">{slug}</code>.<br />
-          Reports are stored per-session and are cleared when you close your browser.
+          No public audit data found for <code className="text-primary">{slug}</code>.<br />
+          The report may have been deleted, set to private, or the link is incorrect.
         </p>
       </div>
       <Link href="/audit" className="premium-btn-primary">
@@ -95,20 +95,44 @@ export default function ReportPage({
   const [result, setResult] = useState<AuditResult | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Unwrap the async params (Next.js 15 style)
   useEffect(() => {
-    params.then(({ slug: s }) => {
+    let isMounted = true;
+    params.then(async ({ slug: s }) => {
+      if (!isMounted) return;
       setSlug(s);
+      
+      // 1. Try local session storage first (fastest, immediately after run)
       const raw = sessionStorage.getItem(`spendpilot:report:${s}`);
       if (raw) {
         try {
           setResult(JSON.parse(raw));
+          setLoading(false);
+          return;
         } catch {
-          // malformed — leave result null
+          // malformed — fallback to remote fetch
         }
       }
-      setLoading(false);
+
+      // 2. Not in local session, try fetching public report from Supabase
+      if (s !== "demo") {
+        try {
+          const { getPublicAudit } = await import("@/lib/supabase/audits");
+          const audit = await getPublicAudit(s);
+
+          if (audit && isMounted) {
+            setResult(audit.result_snapshot as unknown as AuditResult);
+          }
+        } catch (err) {
+          console.error("Failed to fetch public report:", err);
+        }
+      }
+      
+      if (isMounted) setLoading(false);
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [params]);
 
   if (loading) return <LoadingState />;

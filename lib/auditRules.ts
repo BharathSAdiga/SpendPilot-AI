@@ -32,14 +32,14 @@ import {
   makeExcessSeatsFinding,
 } from "@/lib/utils/findingFactory";
 
-// ─── Shared configuration ─────────────────────────────────────────────────────
+import type { AiTool } from "@/types/audit";
 
 /** Tools that overlap in function — paying for 2+ in a group is likely wasteful. */
-const OVERLAP_GROUPS: ReadonlyArray<readonly string[]> = [
+const OVERLAP_GROUPS: ReadonlyArray<readonly AiTool[]> = [
   ["Cursor", "Windsurf", "GitHub Copilot"],   // coding assistants / AI IDEs
   ["ChatGPT", "Claude", "Gemini"],            // general-purpose chat assistants
   ["OpenAI API", "Anthropic API"],            // direct API platforms
-] as const;
+];
 
 /** Use-cases where enterprise API tools are almost always overkill. */
 const LIGHTWEIGHT_USE_CASES = new Set(["content", "design", "customer_support"]);

@@ -19,25 +19,27 @@ const anonKey      = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const serviceKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!;  // server-only
 
 if (!supabaseUrl || !anonKey) {
-  throw new Error(
+  console.warn(
     "[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-    "Copy .env.example → .env.local and fill in your project credentials."
+    "Database features will not work until you configure them."
   );
 }
 
 // ─── Browser / RSC client (anon key, respects RLS) ───────────────────────────
 
-export const supabase = createClient<Database>(supabaseUrl, anonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+export const supabase = supabaseUrl && anonKey 
+  ? createClient<Database>(supabaseUrl, anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  : (null as any);
 
 // ─── Server-only admin client (service-role key, bypasses RLS) ───────────────
 // NEVER import this in Client Components or expose it to the browser.
 
-export const supabaseAdmin = serviceKey
+export const supabaseAdmin = supabaseUrl && serviceKey
   ? createClient<Database>(supabaseUrl, serviceKey, {
       auth: { persistSession: false },
     })
