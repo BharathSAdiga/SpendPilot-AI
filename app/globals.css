@@ -4,7 +4,6 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Custom Color Tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -33,16 +32,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Glassmorphism & Premium Tokens */
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
   --color-glow: var(--glow);
 
-  /* Gradients */
   --color-gradient-start: var(--gradient-start);
   --color-gradient-end: var(--gradient-end);
 
-  /* Radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -50,87 +46,62 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* ─── Light Theme ───────────────────────────────────────────────────────────── */
 :root {
   --background: #ffffff;
   --foreground: #09090b;
-
   --card: #ffffff;
   --card-foreground: #09090b;
-
   --popover: #ffffff;
   --popover-foreground: #09090b;
-
   --primary: #18181b;
   --primary-foreground: #fafafa;
-
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
-
   --muted: #f4f4f5;
   --muted-foreground: #52525b;
-
   --accent: #f4f4f5;
   --accent-foreground: #18181b;
-
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
-
   --border: #e4e4e7;
   --input: #e4e4e7;
   --ring: #18181b;
-
   --glass: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glow: rgba(0, 0, 0, 0.05);
-
   --gradient-start: #f3f4f6;
   --gradient-end: #ffffff;
-
   --radius: 0.75rem;
 }
 
-/* ─── Dark Theme (Linear/Vercel vibe) ────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #000000;
     --foreground: #ededed;
-
     --card: rgba(255, 255, 255, 0.03);
     --card-foreground: #ededed;
-
     --popover: #0a0a0a;
     --popover-foreground: #ededed;
-
     --primary: #ffffff;
     --primary-foreground: #09090b;
-
     --secondary: rgba(255, 255, 255, 0.05);
     --secondary-foreground: #ededed;
-
     --muted: #111111;
     --muted-foreground: #a1a1aa;
-
     --accent: rgba(255, 255, 255, 0.1);
     --accent-foreground: #ededed;
-
     --destructive: #7f1d1d;
     --destructive-foreground: #fecaca;
-
     --border: rgba(255, 255, 255, 0.1);
     --input: rgba(255, 255, 255, 0.1);
     --ring: #ededed;
-
     --glass: rgba(10, 10, 10, 0.6);
     --glass-border: rgba(255, 255, 255, 0.1);
     --glow: rgba(255, 255, 255, 0.05);
-
     --gradient-start: #0a0a0a;
     --gradient-end: #000000;
   }
 }
-
-/* ─── Base ──────────────────────────────────────────────────────────────────── */
 
 *,
 *::before,
@@ -147,7 +118,6 @@ body {
   background-attachment: fixed;
 }
 
-/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -156,8 +126,6 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-/* ─── Premium UI Utilities (Tailwind v4 @utility syntax) ─────────────────── */
 
 @utility glass-card {
   background: var(--glass);
@@ -362,10 +330,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
 
-@media (min-width: 640px) {
-  .section-card {
+  @media (min-width: 640px) {
     padding: 1.5rem;
     gap: 1.5rem;
   }
