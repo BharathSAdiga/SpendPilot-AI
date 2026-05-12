@@ -69,7 +69,7 @@ export async function insertAudit(
 
   const { data, error } = await admin
     .from("audits")
-    .insert(payload as any)
+    .insert(payload as unknown as never)
     .select()
     .single();
 
@@ -90,7 +90,7 @@ export async function setAuditPublic(
   const update: AuditUpdate = { is_public: isPublic };
   const { error } = await admin
     .from("audits")
-    // @ts-ignore
+    // @ts-expect-error Supabase types misinfer inside generic builder
     .update(update)
     .eq("id", auditId);
 

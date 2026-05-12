@@ -184,7 +184,6 @@ function PlanComparison({
 
 function SeverityBar({ severity }: { severity: FindingSeverity }) {
   const cfg = SEVERITY_CONFIG[severity];
-  const widths: Record<FindingSeverity, string> = { critical: "100%", warning: "66%", info: "33%" };
   return (
     <div className="flex items-center gap-2">
       <div className="flex gap-0.5">

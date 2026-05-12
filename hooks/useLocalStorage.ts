@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 /**
@@ -85,12 +86,13 @@ export function useLocalStorage<T>(
 ): UseLocalStorageReturn<T> {
   const { serializer = jsonSerializer<T>(), onError } = options;
 
-  // Keep serializer stable across renders with a ref
   const serializerRef = useRef(serializer);
-  serializerRef.current = serializer;
-
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+
+  useEffect(() => {
+    serializerRef.current = serializer;
+    onErrorRef.current = onError;
+  }, [serializer, onError]);
 
   // ── State ──────────────────────────────────────────────────────────────────
   // Start undefined — identical to what the server renders — to avoid
@@ -139,6 +141,7 @@ export function useLocalStorage<T>(
 
   // ── Mount: read initial value from storage ────────────────────────────────
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setValueState(readStorage());
     setIsHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps

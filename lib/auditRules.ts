@@ -19,7 +19,6 @@ import {
   findCheaperPlan,
   findSuitablePlan,
   planDowngradeSavings,
-  flatMonthlyPrice,
 } from "@/lib/utils/pricingUtils";
 
 import {
@@ -50,7 +49,7 @@ const smallTeamOverplan: AuditRule = {
   id: "small-team-overplan",
   name: "Small team on oversized plan",
   scope: "per_tool",
-  evaluate({ input, toolEntry }: RuleContext): AuditFinding[] {
+  evaluate({ toolEntry }: RuleContext): AuditFinding[] {
     if (!toolEntry) return [];
     const resolved = resolveFlatRatePlan(toolEntry);
     if (!resolved) return [];

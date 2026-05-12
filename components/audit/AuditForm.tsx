@@ -203,7 +203,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
           
           if (res.status === 500 && err?.result) {
              console.warn("Backend failed, falling back to local processing", err);
-             const id = `${Date.now()}`;
+             const id = String(Date.now());
              sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify({ ...err.result, fallbackMode: true }));
              setReportId(id);
              clearDraftOnSuccess();
@@ -216,7 +216,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
         
         const responseData = await res.json();
         const result: AuditResult = responseData.result || responseData; 
-        const id = responseData.public_token || `${Date.now()}`;
+        const id = responseData.public_token || String(Date.now());
         
         sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify(result));
         setReportId(id);
