@@ -54,32 +54,95 @@ function ScoreRing({ score }: { score: number }) {
 
 // ─── Loading / Error states ───────────────────────────────────────────────────
 
+function SkeletonCard({ className }: { className?: string }) {
+  return (
+    <div className={`glass-card p-6 flex flex-col gap-3 relative overflow-hidden ${className || ''}`}>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+      <div className="h-4 w-24 bg-[var(--border)] rounded animate-pulse" />
+      <div className="h-10 w-32 bg-[var(--border)] rounded animate-pulse mt-2" />
+      <div className="h-3 w-48 bg-[var(--border)] rounded animate-pulse mt-2" />
+    </div>
+  );
+}
+
 function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-32 text-muted-foreground">
-      <svg width="32" height="32" viewBox="0 0 14 14" fill="none" className="animate-spin text-primary" aria-hidden>
-        <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
-        <path d="M12 7a5 5 0 00-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-      <p>Loading your audit report…</p>
+    <div className="container mx-auto px-4 py-8 md:py-12 max-w-[1200px] animate-in fade-in duration-500">
+      <div className="flex flex-col gap-8">
+        
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
+          <div className="flex flex-col gap-3 w-full md:w-1/2">
+            <div className="h-10 w-3/4 max-w-[400px] bg-[var(--border)] rounded-lg animate-pulse" />
+            <div className="h-4 w-1/2 max-w-[250px] bg-[var(--border)] rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-32 bg-[var(--border)] rounded-lg animate-pulse" />
+        </div>
+
+        {/* AI Summary Panel Skeleton */}
+        <div className="glass-card p-6 border-l-4 border-[var(--border)] relative overflow-hidden">
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+          <div className="flex items-start gap-4">
+             <div className="w-10 h-10 rounded-full bg-[var(--border)] shrink-0 animate-pulse" />
+             <div className="w-full flex flex-col gap-3 pt-1">
+               <div className="h-5 w-48 bg-[var(--border)] rounded animate-pulse" />
+               <div className="h-4 w-full bg-[var(--border)] rounded animate-pulse" />
+               <div className="h-4 w-5/6 bg-[var(--border)] rounded animate-pulse" />
+               <div className="h-4 w-2/3 bg-[var(--border)] rounded animate-pulse" />
+             </div>
+          </div>
+        </div>
+
+        {/* 4 Cards Skeleton */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="glass-card p-6 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            <div className="w-28 h-28 rounded-full bg-[var(--border)] animate-pulse" />
+            <div className="h-4 w-24 bg-[var(--border)] rounded animate-pulse mt-2" />
+          </div>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="grid gap-6 md:grid-cols-3">
+           <div className="md:col-span-2 glass-card h-[400px] bg-[var(--border)]/50 animate-pulse relative overflow-hidden">
+             <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+           </div>
+           <div className="glass-card h-[400px] bg-[var(--border)]/50 animate-pulse relative overflow-hidden">
+             <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+           </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function NotFoundState({ slug }: { slug: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 py-32 text-center">
-      <span className="text-5xl">🔍</span>
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Report not found</h2>
-        <p className="text-muted-foreground mt-2">
-          No public audit data found for <code className="text-primary">{slug}</code>.<br />
-          The report may have been deleted, set to private, or the link is incorrect.
-        </p>
+    <div className="container mx-auto px-4 py-16 md:py-32 flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-700">
+      <div className="relative w-48 h-48 mb-8 flex items-center justify-center group">
+        <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all duration-700 animate-pulse" />
+        <div className="absolute inset-0 bg-secondary/80 rounded-full border border-border/50 backdrop-blur-sm" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground relative z-10 drop-shadow-lg">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
       </div>
-      <Link href="/audit" className="premium-btn-primary">
-        Run New Audit
-      </Link>
+      <div className="text-center max-w-lg relative z-10 flex flex-col items-center">
+        <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Report Unavailable</h2>
+        <p className="text-muted-foreground mb-8 text-lg leading-relaxed">
+          We couldn't find the audit report for <code className="bg-white/5 px-2 py-1 rounded text-primary text-sm font-mono tracking-wider border border-white/10">{slug}</code>. 
+          <br className="hidden sm:block" />
+          It may have been deleted, marked as private, or the link is incorrect.
+        </p>
+        <Link href="/audit" className="premium-btn-primary inline-flex items-center gap-2 group shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><path d="m15 18-6-6 6-6"/></svg>
+          Run a New Audit
+        </Link>
+      </div>
     </div>
   );
 }

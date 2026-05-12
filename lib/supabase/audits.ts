@@ -105,6 +105,8 @@ export async function setAuditPublic(
  * Uses the anon client — RLS policy "audits: public report read" allows this.
  */
 export async function getPublicAudit(token: string): Promise<AuditRow | null> {
+  if (!supabase) return null;
+
   const { data, error } = await supabase
     .from("audits")
     .select("*")
@@ -121,6 +123,8 @@ export async function getPublicAudit(token: string): Promise<AuditRow | null> {
  * Fetches a single audit by ID (owner-scoped via RLS).
  */
 export async function getAuditById(id: string): Promise<AuditRow | null> {
+  if (!supabase) return null;
+
   const { data, error } = await supabase
     .from("audits")
     .select("*")
@@ -140,6 +144,8 @@ export async function listUserAudits(
   limit = 20,
   offset = 0,
 ): Promise<AuditCard[]> {
+  if (!supabase) return [];
+
   const { data, error } = await supabase
     .from("audits")
     .select(`
