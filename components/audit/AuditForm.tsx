@@ -321,10 +321,13 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
             className="flex flex-col gap-6"
           >
             {/* ── Organisation details ── */}
-            <section className="section-card" aria-label="Organisation details">
-              <h3 className="text-sm font-semibold text-[var(--foreground)]">
+            <fieldset className="section-card" aria-labelledby="org-details-heading">
+              <legend id="org-details-heading" className="text-sm font-semibold text-[var(--foreground)] sr-only">
                 Organisation Details
-              </h3>
+              </legend>
+              <div aria-hidden="true" className="text-sm font-semibold text-[var(--foreground)]">
+                Organisation Details
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Company name */}
@@ -340,12 +343,13 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                     autoComplete="organization"
                     aria-required="true"
                     aria-invalid={!!errors.companyName}
+                    aria-describedby={errors.companyName ? "companyName-error" : undefined}
                     disabled={busy}
                     className={errors.companyName ? "form-input-error" : "form-input"}
                     {...register("companyName")}
                   />
                   {errors.companyName && (
-                    <p role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                    <p id="companyName-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
                       <span aria-hidden="true">⚠</span> {errors.companyName.message}
                     </p>
                   )}
@@ -371,6 +375,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                           placeholder="50"
                           aria-required="true"
                           aria-invalid={!!errors.teamSize}
+                          aria-describedby={errors.teamSize ? "teamSize-error" : undefined}
                           disabled={busy}
                           className={`${errors.teamSize ? "form-input-error" : "form-input"} pr-16`}
                           value={field.value ?? ""}
@@ -393,7 +398,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                     </span>
                   </div>
                   {errors.teamSize && (
-                    <p role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                    <p id="teamSize-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
                       <span aria-hidden="true">⚠</span> {errors.teamSize.message}
                     </p>
                   )}
@@ -411,6 +416,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                     id="primaryUseCase"
                     aria-required="true"
                     aria-invalid={!!errors.primaryUseCase}
+                    aria-describedby={errors.primaryUseCase ? "primaryUseCase-error" : undefined}
                     disabled={busy}
                     className={errors.primaryUseCase ? "form-select-error" : "form-select"}
                     {...register("primaryUseCase")}
@@ -432,7 +438,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                   </span>
                 </div>
                 {errors.primaryUseCase && (
-                  <p role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                  <p id="primaryUseCase-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
                     <span aria-hidden="true">⚠</span> {errors.primaryUseCase.message}
                   </p>
                 )}
@@ -448,6 +454,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                     type="email"
                     placeholder="you@company.com"
                     aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : "email-desc"}
                     disabled={busy}
                     className={errors.email ? "form-input-error" : "form-input"}
                     {...register("email")}
@@ -460,14 +467,14 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                   </span>
                 </div>
                 {errors.email ? (
-                  <p role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                  <p id="email-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
                     <span aria-hidden="true">⚠</span> {errors.email.message}
                   </p>
                 ) : (
-                  <p className="text-xs text-[var(--muted-foreground)]">We'll send a copy of your audit report here.</p>
+                  <p id="email-desc" className="text-xs text-[var(--muted-foreground)]">We'll send a copy of your audit report here.</p>
                 )}
               </div>
-            </section>
+            </fieldset>
 
             {/* ── Divider ── */}
             <div className="border-t border-[var(--border)]" aria-hidden="true" />

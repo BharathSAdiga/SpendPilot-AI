@@ -68,9 +68,9 @@ function SummaryDisplay({ summary }: { summary: AuditSummaryResult }) {
     <div className="flex flex-col gap-5">
       {/* Executive overview */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-2">
+        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-2">
           Executive Overview
-        </p>
+        </h4>
         <p className="text-sm text-foreground leading-relaxed font-medium">
           {summary.executive}
         </p>
@@ -78,9 +78,9 @@ function SummaryDisplay({ summary }: { summary: AuditSummaryResult }) {
 
       {/* Top actions */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">
+        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">
           Priority Actions
-        </p>
+        </h4>
         <ul className="flex flex-col gap-2.5" role="list">
           {summary.topActions.map((action, i) => (
             <li key={i} className="flex items-start gap-2.5">
@@ -110,9 +110,9 @@ function SummaryDisplay({ summary }: { summary: AuditSummaryResult }) {
           <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
         </svg>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color: "#a78bfa" }}>
+          <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color: "#a78bfa" }}>
             90-Day Outlook
-          </p>
+          </h4>
           <p className="text-sm text-foreground leading-snug">{summary.outlook}</p>
         </div>
       </div>
@@ -153,7 +153,7 @@ export function AuditSummaryPanel({ result }: AuditSummaryPanelProps) {
         border: "1px solid rgba(255,255,255,0.08)",
         backdropFilter: "blur(24px)",
       }}
-      aria-label="AI-generated audit summary"
+      aria-labelledby="ai-summary-heading"
     >
       {/* Ambient glow */}
       <div
@@ -175,7 +175,7 @@ export function AuditSummaryPanel({ result }: AuditSummaryPanelProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-foreground">AI Audit Summary</h3>
+              <h3 id="ai-summary-heading" className="text-sm font-bold text-foreground">AI Audit Summary</h3>
               {summary?.isFallback && (
                 <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-yellow-500 bg-yellow-500/10 border border-yellow-500/20">
                   Fallback Mode

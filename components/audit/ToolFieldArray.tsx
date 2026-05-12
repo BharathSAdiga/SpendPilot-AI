@@ -103,6 +103,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                 },
               })}
               aria-invalid={!!rowErrors?.tool}
+              aria-describedby={rowErrors?.tool ? `tools.${index}.tool-error` : undefined}
               className={rowErrors?.tool ? "form-select-error" : "form-select"}
             >
               <option value="">Select tool…</option>
@@ -121,6 +122,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
               id={`tools.${index}.plan`}
               {...register(`tools.${index}.plan`)}
               aria-invalid={!!rowErrors?.plan}
+              aria-describedby={rowErrors?.plan ? `tools.${index}.plan-error` : undefined}
               className={rowErrors?.plan ? "form-select-error" : "form-select"}
               disabled={!selectedTool}
             >
@@ -171,6 +173,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                   step={0.01}
                   placeholder="0.00"
                   aria-invalid={!!rowErrors?.monthlySpend}
+                  aria-describedby={rowErrors?.monthlySpend ? `tools.${index}.monthlySpend-error` : undefined}
                   className={`${rowErrors?.monthlySpend ? "form-input-error" : "form-input"} pl-8`}
                   value={field.value ?? ""}
                   onChange={(e) =>
@@ -205,6 +208,7 @@ export function ToolRow({ index, onRemove, canRemove }: ToolRowProps) {
                   step={1}
                   placeholder="1"
                   aria-invalid={!!rowErrors?.seats}
+                  aria-describedby={rowErrors?.seats ? `tools.${index}.seats-error` : undefined}
                   className={`${rowErrors?.seats ? "form-input-error" : "form-input"} pr-14`}
                   value={field.value ?? ""}
                   onChange={(e) =>
@@ -260,11 +264,11 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
   }
 
   return (
-    <section aria-label="AI tools list" className="flex flex-col gap-4">
+    <fieldset aria-labelledby="tools-list-heading" className="flex flex-col gap-4">
       {/* Section header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-[var(--foreground)]">AI Tools</h3>
+          <legend id="tools-list-heading" className="text-sm font-semibold text-[var(--foreground)]">AI Tools</legend>
           <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
             {fields.length} of {maxTools} added
           </p>
@@ -309,7 +313,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
           Add Tool
         </button>
       )}
-    </section>
+    </fieldset>
   );
 }
 

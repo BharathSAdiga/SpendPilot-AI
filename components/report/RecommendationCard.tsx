@@ -247,7 +247,7 @@ export function RecommendationCard({
         WebkitBackdropFilter: "blur(24px)",
         boxShadow: `0 4px 24px -8px ${sev.bg}, inset 0 1px 0 rgba(255,255,255,0.04)`,
       }}
-      aria-label={`Recommendation: ${finding.title}`}
+      aria-labelledby={`title-${finding.id}`}
     >
       {/* ── Severity accent line ── */}
       <div
@@ -309,7 +309,7 @@ export function RecommendationCard({
 
         {/* ── Title ── */}
         <div>
-          <h3 className="text-sm font-bold text-foreground leading-snug">{finding.title}</h3>
+          <h3 id={`title-${finding.id}`} className="text-sm font-bold text-foreground leading-snug">{finding.title}</h3>
           {finding.toolName && (
             <span className="text-xs text-muted-foreground mt-0.5 block">
               Tool: <span className="font-semibold text-foreground">{finding.toolName}</span>
@@ -319,18 +319,24 @@ export function RecommendationCard({
 
         {/* ── Plan comparison ── */}
         {hasPlanChange && (
-          <PlanComparison
-            current={currentPlan!}
-            suggested={finding.suggestedPlanLabel!}
-            accentColor={act.accent}
-          />
+          <div className="flex flex-col gap-1">
+            <span className="sr-only">Recommended plan change: from {currentPlan} to {finding.suggestedPlanLabel}</span>
+            <PlanComparison
+              current={currentPlan!}
+              suggested={finding.suggestedPlanLabel!}
+              accentColor={act.accent}
+            />
+          </div>
         )}
         {!hasPlanChange && hasAlternative && (
-          <PlanComparison
-            current={currentPlan ?? finding.toolName ?? "Current tool"}
-            suggested={finding.suggestedAlternativeTool!}
-            accentColor={act.accent}
-          />
+          <div className="flex flex-col gap-1">
+            <span className="sr-only">Recommended tool switch: from {currentPlan ?? finding.toolName} to {finding.suggestedAlternativeTool}</span>
+            <PlanComparison
+              current={currentPlan ?? finding.toolName ?? "Current tool"}
+              suggested={finding.suggestedAlternativeTool!}
+              accentColor={act.accent}
+            />
+          </div>
         )}
 
         {/* ── Savings context bar ── */}
@@ -358,9 +364,10 @@ export function RecommendationCard({
         <div>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1.5 text-xs font-medium transition-colors duration-150"
+            className="flex items-center gap-1.5 text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring rounded-sm outline-none"
             style={{ color: expanded ? act.accent : "var(--muted-foreground)" }}
             aria-expanded={expanded}
+            aria-controls={`reasoning-${finding.id}`}
           >
             <svg
               width="12" height="12" viewBox="0 0 12 12" fill="none"
@@ -374,6 +381,7 @@ export function RecommendationCard({
 
           {expanded && (
             <div
+              id={`reasoning-${finding.id}`}
               className="mt-3 flex flex-col gap-3 rounded-xl p-4"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
             >
