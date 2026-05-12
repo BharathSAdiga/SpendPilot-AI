@@ -106,13 +106,13 @@ export interface Database {
         Row:    AuditRow;
         Insert: AuditInsert;
         Update: AuditUpdate;
-        Relationships: any[];
+        Relationships: Record<string, unknown>[];
       };
       leads: {
         Row:    LeadRow;
         Insert: LeadInsert;
         Update: LeadUpdate;
-        Relationships: any[];
+        Relationships: Record<string, unknown>[];
       };
     };
     Enums: {

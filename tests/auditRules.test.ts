@@ -13,7 +13,6 @@ import { describe, it, expect } from "vitest";
 import { runAudit } from "@/lib/auditEngine";
 import type { AuditFinding } from "@/types/auditEngine";
 import {
-  STARTUP_CURSOR_ENTERPRISE,
   SMALL_TEAM_CURSOR_BUSINESS,
   EXCESS_SEATS_CURSOR,
   CONTENT_TEAM_API_PLATFORM,

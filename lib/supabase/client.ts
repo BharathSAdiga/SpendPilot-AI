@@ -34,7 +34,7 @@ export const supabase = supabaseUrl && anonKey
         autoRefreshToken: true,
       },
     })
-  : (null as any);
+  : (null as unknown as Database);
 
 // ─── Server-only admin client (service-role key, bypasses RLS) ───────────────
 // NEVER import this in Client Components or expose it to the browser.
