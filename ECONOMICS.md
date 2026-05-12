@@ -1,81 +1,48 @@
-# Unit Economics & Financial Projections
-**SpendPilot AI — Lead Generation & Monetization Engine**
+# Unit Economics & Financial Modeling
 
-This document models the realistic unit economics for SpendPilot AI functioning as a high-intent B2B lead generation tool. The primary monetization mechanism is capturing FinOps consulting engagements (high ACV) alongside a secondary self-serve SaaS tracking tier.
+*Note: This model represents the pathway from a free lead-generation tool to a $1M ARR SaaS business.*
 
----
+## Assumptions
+- **Average Customer:** Series B Startup (150 employees).
+- **Average Waste Identified:** $18,000 / year.
+- **Pricing Model:** SpendPilot Pro charges a flat **$299/month** ($3,588/year) for continuous monitoring, SSO integrations, and automated seat de-provisioning.
+- **Churn Rate:** 3% monthly (high, assuming some customers fix their spend and churn, but continuous API usage tracking aims to mitigate this).
 
-## 1. Core Revenue Assumptions
+## Converted Lead Value (LTV)
+- Average Revenue Per Account (ARPA): $299/mo
+- Gross Margin: 90% (Deterministic engine is cheap; main costs are Supabase and Anthropic summaries).
+- Estimated Customer Lifespan: 33 months (1 / 0.03 churn).
+- **Lifetime Value (LTV) = ~$8,800**
 
-| Revenue Stream | Price / ACV | Gross Margin | Description |
-| :--- | :--- | :--- | :--- |
-| **FinOps Consulting** | $4,500 (one-off) | 85% | "Done-for-you" contract renegotiation and tool consolidation based on the audit. |
-| **Premium SaaS Tier** | $99 / month | 95% | Automated monthly API tracking, alerts, and SSO integration for ongoing teams. |
+## CAC Assumptions
+Because the primary acquisition channel is the free Audit Engine (Product-Led Growth), our Customer Acquisition Cost (CAC) is heavily skewed toward engineering time rather than paid ads.
+- Paid Ads Blended CAC: $0 (Not utilizing paid ads initially).
+- Content/SEO Blended CAC: ~$150 (Time spent writing tear-downs, hosting).
+- **Target CAC: < $200 per paid conversion.**
+- **LTV:CAC Ratio:** 44:1 (Extremely healthy, indicating room to scale paid acquisition later).
 
----
+## Conversion Funnel
+1. **Top of Funnel (Website Visitors):** 10,000 / month
+2. **Activation (Run Free Audit):** 20% conversion = 2,000 audits.
+3. **Lead Capture (Enter Email for Report):** 15% conversion = 300 qualified leads.
+4. **Sales Qualified (Booked Demo):** 10% conversion = 30 demos.
+5. **Closed Won (Paid Subscription):** 33% conversion = 10 new customers / month.
 
-## 2. The Conversion Funnel
+## Profitability Math (Per 100 Audits)
+- **Revenue:** 100 audits -> 15 leads -> 1.5 demos -> 0.5 paid users = **$150/mo new MRR**.
+- **Server Costs:** 
+  - Vercel/Supabase: negligible base tier.
+  - Anthropic Haiku: ~$0.002 per summary * 100 = $0.20.
+  - Resend: 15 emails = $0.01.
+- **Margin:** The free audit costs literally pennies to run at scale, making it the ultimate loss-leader.
 
-Based on believable early-stage B2B SaaS benchmarks, here is the monthly funnel projection for an initial marketing budget.
+## Path to $1M ARR
+To reach $1,000,000 ARR, we need **278 active customers** paying $3,588/year.
+Based on our funnel metrics:
+- We need 10 new customers per month to offset churn and grow.
+- This requires 30 demos/month.
+- Which requires 300 captured leads.
+- Which requires 2,000 completed audits.
+- Which requires **10,000 unique visitors per month**.
 
-**Monthly Traffic**: 2,000 Unique Visitors  
-**Monthly Marketing Spend**: $2,000 (Blended: SEO, X/Twitter Ads, LinkedIn Outreach)
-
-| Funnel Stage | Conversion Rate | Monthly Volume | Metric |
-| :--- | :--- | :--- | :--- |
-| **1. Site Visitors** | - | 2,000 | Traffic |
-| **2. Audits Completed** | 12% | 240 | Qualified Leads (Emails Captured) |
-| **3. Consultation Booked** | 8% of Leads | 19 | Strategy Calls |
-| **4. Consulting Closed** | 25% of Calls | 4.8 | High-Ticket Deals |
-| **5. SaaS Upgrades** | 5% of Leads | 12 | New SaaS Subscriptions |
-
----
-
-## 3. Unit Economics & Lead Value
-
-Using the funnel above, we can determine the fundamental unit economics of the business model.
-
-* **Cost Per Lead (CPL)**: 
-  * $2,000 Marketing Spend ÷ 240 Leads = **$8.33 / Lead**
-* **Customer Acquisition Cost (CAC - Consulting)**: 
-  * $2,000 ÷ 4.8 Deals = **$416 / Consulting Client**
-* **Customer Acquisition Cost (CAC - SaaS)**:
-  * $2,000 ÷ 12 Subs = **$166 / SaaS Client**
-  * *(Note: Actual blended CAC is highly efficient because marketing spend drives both streams simultaneously).*
-
-### Average Lead Value (ALV)
-How much revenue does a single email capture generate on average?
-* **Consulting Revenue**: 4.8 deals * $4,500 = $21,600
-* **SaaS ARR Added**: 12 subs * $99 * 12 months = $14,256
-* **Total Expected Value per Cohort**: $35,856
-* **Lead Value**: $35,856 ÷ 240 Leads = **$149.40 per Lead**
-
-> **Unit Economics Conclusion**: Exceptional. With a CPL of $8.33 and a Lead Value of $149.40, the **LTV:CAC ratio is roughly 18:1**, heavily subsidized by the high-margin consulting closures.
-
----
-
-## 4. ARR & Growth Projections (Year 1)
-
-Assuming a flat 15% month-over-month growth in traffic (due to the viral shareable `/report/[slug]` loop and SEO compounding), here is the 12-month outlook.
-
-* *Month 1*: 240 leads → $21k Consulting + $1.1k MRR
-* *Month 6*: 480 leads → $43k Consulting + $5.8k MRR
-* *Month 12*: 1,100 leads → $99k Consulting + $18k MRR
-
-**End of Year 1 Run Rate (ARR):**
-* SaaS ARR: **$216,000**
-* Consulting Revenue (Trailing 12m): **$650,000**
-* **Total Annualized Revenue: ~$866,000**
-
----
-
-## 5. Profitability Thresholds
-
-**Fixed Monthly Costs (Lean Startup):**
-* **Infrastructure**: Vercel ($20), Supabase ($25) = $45
-* **AI APIs**: Anthropic Claude API (approx $0.05 per audit * 500) = $25
-* **Tooling**: Resend, GitHub, Apollo = $130
-* **Total Base OpEx**: **$200 / month**
-
-**Break-Even Point:**
-Because fixed costs are hyper-lean ($200/mo), the business is fundamentally profitable on the **very first consulting deal closed** ($4,500) or by acquiring just **3 Premium SaaS users** ($297/mo). Every additional dollar goes directly toward founder salaries and reinvestment into paid acquisition loops to accelerate the flywheel.
+If we can stabilize 10k highly-targeted technical visitors a month through SEO and engineering deep-dives, $1M ARR is a highly realistic mathematical outcome within 24-36 months.

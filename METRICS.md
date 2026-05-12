@@ -1,98 +1,31 @@
-# Metrics — SpendPilot AI
+# Product Metrics & Analytics
 
-> KPI tracking framework, North Star metric, and analytics implementation plan.
-
----
+*Focus: SaaS metrics for product-led growth.*
 
 ## North Star Metric
+**Total Wasted Spend Identified ($)**
+This is the ultimate measure of the value we deliver. If SpendPilot AI is not consistently finding thousands of dollars in savings for our users, the core value proposition has failed. Tracking the cumulative dollar amount saved creates a compounding marketing narrative.
 
-> **Number of successful audits completed per week**
+## 3 Input Metrics
 
-A "successful audit" = a user uploads data (CSV or SSO) and views a completed report.  
-This captures real activation, not just signups.
+1. **Audit Completion Rate (%)**
+   - *What it is:* The percentage of users who start the `/audit` wizard and successfully submit the form.
+   - *Why it matters:* If this drops below 60%, it means our form is too complex or requires data the user doesn't have on hand. It dictates the friction of our top-of-funnel.
 
----
+2. **Lead Capture Conversion Rate (%)**
+   - *What it is:* The percentage of users who complete the audit and provide their email to receive the persistent report.
+   - *Why it matters:* This measures the perceived value of the initial free output. If they don't want the report emailed to them, our insights weren't compelling enough.
 
-## Metric Tiers
+3. **High-Overlap Stack Percentage (%)**
+   - *What it is:* The percentage of audited companies flagged for having 2+ tools in the same category (e.g., both ChatGPT and Claude).
+   - *Why it matters:* This validates our core hypothesis about "shadow IT sprawl." If this number is high, our messaging about tool consolidation is perfectly aligned with market reality.
 
-### L1 — Business Health (Weekly review)
-| Metric                | Target (Month 3) | Target (Month 12) |
-|-----------------------|------------------|-------------------|
-| MRR                   | $1,000           | $15,000           |
-| New signups/week      | 20               | 100               |
-| Audits completed/week | 10               | 80                |
-| Paying customers      | 15               | 150               |
-| Monthly churn rate    | < 5%             | < 3%              |
+## Analytics Instrumentation
+- **Vercel Web Analytics:** Used for privacy-first tracking of page views, unique visitors, and core web vitals (LCP, CLS) to ensure Lighthouse scores remain above 90.
+- **PostHog (Planned):** Will be used for event-based tracking. Key events to instrument: `audit_started`, `tool_added`, `audit_completed`, `email_submitted`, `report_viewed`.
 
-### L2 — Product Engagement (Daily review)
-| Metric                    | Description                                     |
-|---------------------------|-------------------------------------------------|
-| Activation rate           | % of signups who complete first audit           |
-| Time to first audit       | Median minutes from signup to first report      |
-| Report share rate         | % of reports exported or shared                 |
-| Return visit rate (D7)    | % of users who return within 7 days             |
-| Feature adoption: SSO     | % of paying users with SSO connected            |
-
-### L3 — Marketing (Weekly review)
-| Metric                | Description                              |
-|-----------------------|------------------------------------------|
-| Landing page CVR      | Visitors → signups                       |
-| Trial → paid CVR      | Signed up → became paying                |
-| CAC by channel        | Cost per acquired customer per channel   |
-| Organic traffic/week  | SEO + referral visitors                  |
-
----
-
-## Funnel
-
-```
-Website visitor
-     ↓ (CVR target: 8–12%)
-Signed up (free)
-     ↓ (Activation target: 60%)
-Completed first audit
-     ↓ (Upgrade target: 10%)
-Paying customer (Starter+)
-     ↓ (Expansion target: 20%)
-Upgraded to Pro
-```
-
----
-
-## Event Tracking Plan
-
-All events tracked via PostHog (or Segment → PostHog).
-
-| Event Name              | Trigger                              | Properties                     |
-|-------------------------|--------------------------------------|--------------------------------|
-| `page_viewed`           | Any page load                        | `path`, `referrer`             |
-| `signup_started`        | Email entered on signup form         | `source`                       |
-| `signup_completed`      | Account created                      | `plan`, `provider`             |
-| `audit_started`         | Upload or SSO connect initiated      | `method: csv|sso`              |
-| `audit_completed`       | Report successfully generated        | `tool_count`, `waste_detected` |
-| `report_exported`       | PDF export clicked                   | `report_id`                    |
-| `upgrade_clicked`       | Upgrade plan CTA clicked             | `from_plan`, `to_plan`         |
-| `subscription_started`  | Payment completed                    | `plan`, `billing: monthly|annual` |
-| `subscription_cancelled`| User cancelled plan                  | `plan`, `reason`               |
-
----
-
-## Dashboard Tools
-
-| Tool          | Purpose                              | Status   |
-|---------------|--------------------------------------|----------|
-| PostHog       | Product analytics & funnels          | Planned  |
-| Stripe        | Revenue, MRR, churn dashboard        | Planned  |
-| Vercel Analytics | Core Web Vitals, traffic          | Active   |
-| Google Search Console | SEO & organic traffic        | Planned  |
-
----
-
-## Reporting Cadence
-
-| Cadence  | What's reviewed                          |
-|----------|------------------------------------------|
-| Daily    | Audit completions, signup count          |
-| Weekly   | Full funnel, churn, MRR change           |
-| Monthly  | LTV:CAC, cohort retention, NPS           |
-| Quarterly| Roadmap reprioritization based on data   |
+## Pivot Trigger Numbers
+We must remain intellectually honest. If we hit the following numbers, we need to pivot the product or the GTM strategy:
+- **Trigger 1:** After 500 audits, the average "Wasted Spend Identified" is < $100/mo. *(Meaning: Startups are actually very efficient, and the problem doesn't exist).*
+- **Trigger 2:** The Lead Capture Conversion Rate stays < 5% after 1,000 visitors. *(Meaning: The product is interesting, but not painful enough to warrant giving up an email address).*
+- **Trigger 3:** Zero demos booked after 50 lead capture emails. *(Meaning: The report is a "nice-to-have" novelty, but not a serious enough problem to pay for a B2B SaaS solution).*

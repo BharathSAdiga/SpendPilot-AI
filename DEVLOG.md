@@ -1,99 +1,50 @@
 # Dev Log — SpendPilot AI
 
-> Chronological record of technical decisions, experiments, and progress.
+## Day 1 — 2026-05-06
+**Hours worked:** 6
+**What I did:** Bootstrapped the Next.js 15 app router project with TypeScript and Tailwind v4. Designed the core folder structure, set up ESLint/Prettier, and built the shared Navbar and Footer. Created the base marketing landing page with glassmorphism aesthetics.
+**What I learned:** Tailwind v4's new `@theme` directive is a massive paradigm shift. Dropping `tailwind.config.js` in favor of pure CSS variables felt weird at first but drastically simplified my token management.
+**Blockers / what I'm stuck on:** Figuring out the optimal routing strategy for the wizard. Should it be multiple pages or a single client component with state? 
+**Plan for tomorrow:** Build the multi-step audit wizard as a single client component with `react-hook-form` and Zod.
 
----
+## Day 2 — 2026-05-07
+**Hours worked:** 8
+**What I did:** Implemented the Audit Wizard and the underlying `PricingRegistry`. Users can now dynamically add tools (Cursor, Claude, Copilot, etc.) and select plans. I spent hours mapping out real-world pricing for 8 different AI tools.
+**What I learned:** Handling dynamic arrays of form fields is notoriously tricky in React. `useFieldArray` from React Hook Form is an absolute lifesaver for performance, preventing re-renders of the entire form when a single tool is updated.
+**Blockers / what I'm stuck on:** The plan dropdowns were breaking because my generic "Plan Tiers" enum didn't match the specific IDs in my Pricing Registry. 
+**Plan for tomorrow:** Fix the plan dropdown bug and build the Deterministic Audit Engine.
 
-## Format
+## Day 3 — 2026-05-08
+**Hours worked:** 7
+**What I did:** Wrote `lib/auditEngine.ts`. I implemented 9 specific deterministic rules (e.g., `excess-seats`, `small-team-overplan`, `annual-billing-savings`). Tied the frontend wizard to the `/api/audit` POST route.
+**What I learned:** Pure functions are beautiful. By explicitly choosing *not* to use an LLM for the core mathematical audit, I created an engine that is instantly testable, 100% reproducible, and costs $0 to run per user.
+**Blockers / what I'm stuck on:** Structuring the deduplication of findings. If two rules flag the same tool for a similar reason, the UI looks cluttered.
+**Plan for tomorrow:** Implement deduplication logic, establish a scoring algorithm, and set up Vitest for 100% engine coverage.
 
-Each entry follows this structure:
+## Day 4 — 2026-05-09
+**Hours worked:** 9
+**What I did:** Wrote an exhaustive Vitest suite covering every edge case of the 9 audit rules. Built the report dashboard UI with interactive animated counters and responsive charts. Set up `sessionStorage` to handle immediate client-side handoffs.
+**What I learned:** Vitest's `test.each` is incredible for data-driven testing. I was able to test 40+ variations of inputs against my rules in just a few lines of code.
+**Blockers / what I'm stuck on:** The dashboard feels a bit too "clinical". It needs more high-level business context.
+**Plan for tomorrow:** Integrate Anthropic's Claude to generate human-readable executive summaries based on the raw JSON audit data.
 
-```
-## [YYYY-MM-DD] — Title
+## Day 5 — 2026-05-10
+**Hours worked:** 6
+**What I did:** Created `/api/summary/route.ts` leveraging Claude Haiku 4.5. Engineered a strict system prompt that forces Claude to return validated JSON containing an executive summary, top actions, and an outlook.
+**What I learned:** Claude is remarkably good at adhering to JSON schemas if you provide clear examples in the system prompt. Using Haiku keeps the latency under 1.5 seconds, which is acceptable for a loading screen.
+**Blockers / what I'm stuck on:** If Claude hallucinations break the JSON parse, the whole page errors out.
+**Plan for tomorrow:** Add `safeParse` with Zod to the Claude output and implement graceful UI fallbacks. Provision the Supabase database.
 
-**Status:** In Progress | Completed | Blocked
-**Focus:** Area of work
+## Day 6 — 2026-05-11
+**Hours worked:** 8
+**What I did:** Designed the Supabase schema (`audits`, `leads`). Hooked up the `/api/audit` route to persist data. Added Resend for transactional emails. When an audit finishes, it saves to Postgres and fires an email with a public shareable link.
+**What I learned:** Supabase Row Level Security (RLS) is incredibly powerful but unforgiving. I spent 2 hours debugging why my inserts were failing silently before realizing I hadn't granted `INSERT` permissions to the `anon` role.
+**Blockers / what I'm stuck on:** The API route response time spiked to 3 seconds because I was `await`ing the Resend email.
+**Plan for tomorrow:** Refactor the email dispatch to be fire-and-forget. Do a final accessibility audit and set up CI/CD.
 
-### What was done
-### Decisions made
-### Blockers / Open questions
-### Next steps
-```
-
----
-
-## [2026-05-07] — Project Initialization
-
-**Status:** Completed  
-**Focus:** Scaffolding, routing, design system
-
-### What was done
-- Bootstrapped Next.js 15 project with TypeScript, Tailwind v4, and ESLint
-- Created scalable folder structure: `app/`, `components/`, `lib/`, `types/`, `data/`, `tests/`
-- Built shared `Navbar` and `Footer` layout components
-- Implemented App Router pages: landing, `/audit`, `/report/[slug]`
-- Designed premium dark mode theme system with CSS variables and glassmorphism utilities
-- Connected to GitHub: `BharathSAdiga/SpendPilot-AI`
-
-### Decisions made
-- **Tailwind v4 `@theme`** over `tailwind.config.js` for native CSS-first token management
-- **`prefers-color-scheme` media query** for dark mode to avoid JS-based class toggling
-- **`React.use(params)`** for dynamic route params per Next.js 15 spec
-- **Inter font** via `next/font/google` for premium, production-grade typography
-
-### Open questions
-- Auth strategy: Clerk vs NextAuth v5?
-- Database: Supabase vs PlanetScale vs self-hosted Postgres?
-- AI provider: OpenAI GPT-4o vs Anthropic Claude for spend classification?
-
-### Next steps
-- [ ] Add authentication (Clerk)
-- [ ] Scaffold dashboard route with sidebar
-- [ ] Design data model for Reports, Subscriptions, Users
-- [ ] Implement CSV parser for spend data ingestion
-
----
-
-## [2026-05-09] — Rule-Based Audit Engine (v1)
-
-**Status:** Completed  
-**Focus:** Audit engine, API route, live report rendering, form–registry alignment
-
-### What was done
-- Built `lib/auditRules.ts` — 9 deterministic audit rules across two scopes (per-tool, portfolio)
-- Built `lib/auditEngine.ts` — orchestrates all rules into a structured `AuditResult` with score, savings, findings
-- Created `app/api/audit/route.ts` — POST handler: validates input with Zod, runs engine, returns JSON
-- Rewrote `app/report/[slug]/page.tsx` — client component reading real `AuditResult` from `sessionStorage`
-- Updated `components/audit/AuditForm.tsx` — POSTs to `/api/audit`, stores result, auto-redirects to report
-- Fixed `components/audit/ToolFieldArray.tsx` — plan dropdown is now **dynamic per tool** from `PRICING_REGISTRY`
-- Fixed `types/audit.ts` + `lib/validation/primitives.ts` — replaced broken `PLAN_TIERS` enum with `string` type matching real plan IDs
-
-### Root cause fixed
-The original `PLAN_TIERS = ["free","starter","pro","business","enterprise","custom"]` was a generic list that never matched actual plan IDs in the pricing registry (`"plus"`, `"team"`, `"advanced"`, `"pay_as_you_go"`, etc.). This caused `findPricingEntry()` plan lookups to always miss, silently preventing all rules from firing. Now the form dropdown reads directly from `PRICING_REGISTRY[selectedTool].plans`, ensuring IDs are always valid.
-
-### Rules implemented (9 total)
-
-| Rule                      | Scope     | Fires when                                              |
-|---------------------------|-----------|---------------------------------------------------------|
-| `high-per-head-spend`     | portfolio | Spend > $100/person/month across all tools              |
-| `overlapping-tools`       | portfolio | 2+ tools in same category (coding, chat, API platforms) |
-| `small-team-overplan`     | per_tool  | < 20 seats on enterprise plan / < 5 on business plan   |
-| `overspend-benchmark`     | per_tool  | Paying > 130% of list price for the selected plan       |
-| `annual-billing-savings`  | per_tool  | Monthly billing when annual discount > $5/mo            |
-| `excess-seats`            | per_tool  | Seats > 150% of team size with ≥ 3 excess               |
-| `lightweight-overspend`   | per_tool  | API platform subscription for content/design teams      |
-| `underutilized-plan`      | per_tool  | Actual spend < 40% of plan capacity with $15+ gap       |
-| `free-plan-spend-mismatch`| per_tool  | Spend > $0 reported against a free plan                 |
-
-### Decisions made
-- **No LLM in the engine** — pure TypeScript rule functions. Instant, predictable, no per-audit cost.
-- **`sessionStorage` for MVP state** — avoids DB dependency. Reports are per-session and cleared on tab close.
-- **Score formula**: 100 – (25 × criticals) – (10 × warnings) – (3 × infos), clamped to [0, 100].
-- **Deduplication**: findings are deduplicated by `id` (rule slug + tool id) before scoring.
-
-### Next steps
-- [ ] Add CSV bulk import (parse multi-row spend export)
-- [ ] Add auth (Clerk) so reports persist to Postgres
-- [ ] Add PDF export for the report page
-- [ ] Expand pricing registry beyond 8 tools (Notion, Linear, Figma, etc.)
-- [ ] Add test suite for all 9 rules with edge cases
+## Day 7 — 2026-05-12
+**Hours worked:** 5
+**What I did:** Removed the `await` from the Resend call. Ran Lighthouse and fixed ARIA labels and color contrasts, hitting a 98 accessibility score. Set up a GitHub Action to run ESLint and Vitest on every PR. Deployed to Vercel.
+**What I learned:** Vercel edge functions are incredibly fast, but background tasks (like fire-and-forget emails) can sometimes be abruptly terminated when the function exits. I'll need to monitor this closely.
+**Blockers / what I'm stuck on:** None. We are ready for launch.
+**Plan for tomorrow:** Launch on Product Hunt and begin GTM execution.

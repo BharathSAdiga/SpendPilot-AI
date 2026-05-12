@@ -1,108 +1,48 @@
-# Tests — SpendPilot AI
+# Automated Tests
 
-> Testing strategy, coverage goals, and test inventory for the SpendPilot AI platform.
-
----
-
-## Testing Philosophy
-
-- **Test behavior, not implementation.** Tests should describe what a user or system _does_, not internal code structure.
-- **Pyramid structure:** Unit → Integration → E2E (most at the bottom, fewest at the top).
-- **Critical paths first.** Auth, CSV parsing, report generation, and billing are highest priority.
-
----
-
-## Tech Stack
-
-| Layer         | Tool                  | Status   |
-|---------------|-----------------------|----------|
-| Unit Tests    | Vitest                | Planned  |
-| Component     | React Testing Library | Planned  |
-| E2E           | Playwright            | Planned  |
-| Coverage      | v8 (via Vitest)       | Planned  |
-
----
-
-## Coverage Targets
-
-| Area                  | Target Coverage |
-|-----------------------|-----------------|
-| Utility functions     | 95%             |
-| API route handlers    | 90%             |
-| React components      | 80%             |
-| E2E critical flows    | 100% of flows   |
-
----
+SpendPilot AI uses **Vitest** for blazing-fast unit and integration testing, ensuring the deterministic audit engine is mathematically sound.
 
 ## Test Inventory
 
-### Unit Tests (`tests/unit/`)
+### 1. `tests/auditRules.test.ts`
+**Covers:** The isolated execution of individual rules.
+- **Test:** "small-team-overplan flags enterprise plans for teams < 20"
+- **Test:** "annual-billing-savings correctly calculates a 20% discount gap"
+- **Test:** "underutilized-plan triggers when actual spend is >$15 below expected capacity"
 
-| Test File                    | Description                              | Status  |
-|------------------------------|------------------------------------------|---------|
-| `lib/csv-parser.test.ts`     | CSV parsing with edge cases              | Planned |
-| `lib/spend-classifier.test.ts` | AI spend classification output validation | Planned |
-| `lib/report-generator.test.ts` | Report slug generation & metadata      | Planned |
-| `lib/formatters.test.ts`     | Currency, date, percentage formatters    | Planned |
+### 2. `tests/auditEngine.test.ts`
+**Covers:** The orchestration of multiple rules and the final scoring algorithm.
+- **Test:** "runAudit correctly deduplicates identical findings from overlapping rules"
+- **Test:** "runAudit clamps the final score between 0 and 100 regardless of massive negative penalties"
+- **Test:** "runAudit calculates totalPotentialSavingsUsd accurately across 5 distinct tools"
 
-### Component Tests (`tests/components/`)
+### 3. `tests/pricingRegistry.test.ts`
+**Covers:** The integrity of the static pricing data.
+- **Test:** "Every tool in PRICING_REGISTRY contains at least one free or baseline plan"
+- **Test:** "Plan IDs are strictly lowercase alphanumeric with no spaces"
 
-| Test File                    | Description                              | Status  |
-|------------------------------|------------------------------------------|---------|
-| `Navbar.test.tsx`            | Renders links, active states             | Planned |
-| `Footer.test.tsx`            | Renders and contains required links      | Planned |
-| `ReportCard.test.tsx`        | Renders metric values correctly          | Planned |
-| `AuditWizard.test.tsx`       | Form validation, step transitions        | Planned |
+### 4. `tests/schema.test.ts`
+**Covers:** Zod validation for the incoming `/api/audit` payload.
+- **Test:** "auditFormSchema rejects negative team sizes"
+- **Test:** "auditFormSchema strips HTML from companyName inputs"
 
-### Integration Tests (`tests/integration/`)
+### 5. `tests/csvParser.test.ts` (Planned for Week 2)
+**Covers:** The robustness of the upcoming bulk CSV importer.
+- **Test:** "Parser successfully ignores malformed CSV rows while extracting valid merchant data"
 
-| Test File                    | Description                              | Status  |
-|------------------------------|------------------------------------------|---------|
-| `api/audit.test.ts`          | POST /api/audit — valid CSV upload       | Planned |
-| `api/report.test.ts`         | GET /api/report/[id] — auth + data shape | Planned |
+## How to Run Tests
 
-### E2E Tests (`tests/e2e/`)
-
-| Test File                    | Flow Covered                             | Status  |
-|------------------------------|------------------------------------------|---------|
-| `landing.spec.ts`            | Visit home → click CTA → reach /audit   | Planned |
-| `audit-upload.spec.ts`       | Upload CSV → view generated report       | Planned |
-| `report-view.spec.ts`        | Visit /report/demo → verify all sections | Planned |
-| `auth.spec.ts`               | Sign up → log in → access dashboard     | Planned |
-
----
-
-## Running Tests
+Ensure you have run `npm install`, then execute:
 
 ```bash
-# Unit + component tests
+# Run all tests once
 npm run test
 
-# Watch mode
+# Run tests in interactive watch mode (great for TDD)
 npm run test:watch
 
-# Coverage report
+# Generate a v8 coverage report
 npm run test:coverage
-
-# E2E (requires dev server running)
-npm run test:e2e
 ```
 
----
-
-## CI Integration
-
-Tests run automatically on every pull request via GitHub Actions.
-
-```yaml
-# .github/workflows/test.yml (planned)
-on: [pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm ci
-      - run: npm run test:coverage
-      - run: npm run test:e2e
-```
+Our GitHub Actions pipeline (`.github/workflows/ci.yml`) enforces that all tests must pass before a PR can be merged into `main`.

@@ -1,124 +1,56 @@
-# Prompts — SpendPilot AI
+# System Prompts & AI Strategy
 
-> AI prompt library for spend classification, report generation, and user-facing suggestions.
+## Active Prompts
 
----
+### 1. The Executive Summary Prompt (v2)
+**Used in:** `/api/summary/route.ts`
+**Model:** `claude-haiku-4-5`
 
-## Overview
+```text
+You are an expert fractional CFO specializing in SaaS spend optimization.
+Your task is to analyze a raw JSON audit of a company's software stack and return a strict JSON response containing an executive summary, top priority actions, and a future outlook.
 
-This document catalogs all AI prompts used in SpendPilot AI. Prompts are versioned and tagged by use case. Each prompt includes the model target, expected output schema, and last tested date.
+Input metrics:
+Company: {{companyName}}
+Team Size: {{teamSize}}
+Total Monthly Spend: ${{totalMonthlySpendUsd}}
+Total Potential Savings: ${{totalPotentialSavingsUsd}}
+Overall Score: {{overallScore}}/100
 
----
+Guidelines:
+- Tone: Professional, authoritative, and direct. No fluff.
+- "executive": A 2-3 sentence high-level summary of their current efficiency.
+- "topActions": Exactly 3 highly specific, immediately actionable bullet points based on the highest-saving findings.
+- "outlook": A 1-2 sentence projection of their runway/efficiency if they implement the changes.
 
-## Prompt Categories
-
-| Category             | Count | Description                                    |
-|----------------------|-------|------------------------------------------------|
-| Spend Classification | 3     | Tag and categorize line items from CSV         |
-| Waste Detection      | 2     | Identify unused/redundant licenses             |
-| Recommendations      | 2     | Generate cost-saving action items              |
-| Report Summary       | 1     | Executive summary generation for reports       |
-| User Onboarding      | 1     | Personalized first-run guidance                |
-
----
-
-## Spend Classification
-
-### `classify-spend-item` v1
-
-**Model:** `gpt-4o`  
-**Temperature:** 0.1  
-**Last tested:** _TODO_
-
-```
-You are a SaaS spend analyst. Given a single line item from a company's expense report, classify it.
-
-Return a JSON object with:
-- vendor: string (vendor name, normalized)
-- category: one of [communication, productivity, infrastructure, security, analytics, design, hr, finance, other]
-- subcategory: string (e.g. "video conferencing", "cloud storage")
-- is_saas: boolean
-- confidence: number (0.0 to 1.0)
-
-Line item: "{{LINE_ITEM}}"
-```
-
-**Expected output:**
-```json
+Output JSON strictly adhering to this schema:
 {
-  "vendor": "Zoom",
-  "category": "communication",
-  "subcategory": "video conferencing",
-  "is_saas": true,
-  "confidence": 0.98
+  "executive": "string",
+  "topActions": ["string", "string", "string"],
+  "outlook": "string"
 }
 ```
 
----
+### Why this prompt works
+- **Role Assignment:** Giving Claude the persona of a "fractional CFO" grounds the vocabulary in business reality rather than technical jargon.
+- **Strict Data Binding:** We don't feed Claude the raw user input; we feed it the *calculated* output from our deterministic engine. Claude only handles the presentation layer.
+- **Enforced JSON Schema:** By explicitly declaring the schema and the keys, we ensure Zod can parse the output with zero formatting errors.
 
-## Waste Detection
+## Failed Prompt Experiments
 
-### `detect-unused-licenses` v1
+### Experiment 1: The "Do It All" Prompt
+*Status: Failed (High Latency, Hallucinations)*
+Initially, I passed the raw form input (Tools, plans, seats) directly into GPT-4o and asked it to "find the wasted spend."
+**Result:** GPT-4o would hallucinate pricing. It assumed GitHub Copilot Pro was $19/mo instead of $10/mo, throwing off the savings calculations. It also took ~8 seconds to respond. 
 
-**Model:** `gpt-4o`  
-**Temperature:** 0.2  
-**Last tested:** _TODO_
+### Experiment 2: The Markdown Table Prompt
+*Status: Failed (Parsing fragility)*
+I asked Claude to return a markdown table of findings.
+**Result:** Parsing a markdown string to map to my React components was a nightmare. A single missing pipe `|` character would break the UI. Switching to strict JSON fixed this entirely.
 
-```
-You are a SaaS optimization expert. Given a list of subscriptions with usage data, identify likely wasted spend.
+## Fallback Strategy
 
-For each subscription, flag if:
-- Monthly active users < 60% of licensed seats
-- Last login date > 60 days ago for any seat
-- Duplicate tools exist in the same category
-
-Subscriptions data: {{SUBSCRIPTIONS_JSON}}
-
-Return a JSON array of waste alerts with:
-- vendor: string
-- waste_type: "unused_seats" | "duplicate_tool" | "stale_users"
-- estimated_monthly_waste: number (USD)
-- recommendation: string
-```
-
----
-
-## Report Summary
-
-### `generate-report-summary` v1
-
-**Model:** `gpt-4o`  
-**Temperature:** 0.4  
-**Last tested:** _TODO_
-
-```
-You are a financial analyst writing an executive summary for a SaaS spend audit.
-
-Given this audit data:
-- Total spend: {{TOTAL_SPEND}}
-- Number of tools: {{TOOL_COUNT}}
-- Wasted spend: {{WASTED_SPEND}}
-- Top savings opportunity: {{TOP_OPPORTUNITY}}
-
-Write a 2–3 sentence executive summary in plain business English. Be specific, confident, and action-oriented.
-Do not use filler phrases like "In conclusion" or "It is worth noting."
-```
-
----
-
-## Prompt Versioning Policy
-
-- Prompts are versioned (`v1`, `v2`, etc.) when output schema or behavior changes significantly
-- Minor wording tweaks do not increment the version
-- All production prompts are A/B tested before full rollout
-- Prompt performance tracked by: classification accuracy, hallucination rate, latency
-
----
-
-## Planned Prompts
-
-| Prompt Name                   | Priority | Notes                              |
-|-------------------------------|----------|------------------------------------|
-| `suggest-vendor-alternatives` | High     | Suggest cheaper alternatives       |
-| `forecast-annual-spend`       | Medium   | Project next 12 months from trends |
-| `draft-renewal-negotiation`   | Low      | Draft renewal negotiation email    |
+If the Anthropic API goes down or the user hits a rate limit, the `/api/summary` route returns a 502 error. The frontend catches this and instantly renders a local, deterministic fallback UI.
+Instead of a custom paragraph, it renders:
+*"Your audit generated ${totalPotentialSavings} in potential savings. Review the structured findings below to optimize your stack."*
+This ensures the user *always* receives value from the audit, even if the AI enhancement layer fails.

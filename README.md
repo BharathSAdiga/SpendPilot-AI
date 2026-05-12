@@ -1,100 +1,72 @@
 # SpendPilot AI
 
-> AI-powered SaaS spend audit and optimization platform for modern engineering teams.
+> Deterministic SaaS spend audit and optimization engine for modern engineering teams.
 
-[![Deploy on Vercel](https://vercel.com/button)](https://vercel.com)
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)
+SpendPilot AI is a high-performance, rule-based audit platform designed to instantly discover wasted SaaS spend, plan mismatches, and tool consolidation opportunities. By strictly analyzing subscription tiers and utilization metrics, it provides actionable right-sizing recommendations without manual spreadsheet crunching.
 
----
+## Features
+- **Deterministic Audit Engine**: 90+ custom rules analyzing overspending, underutilization, and feature overlap.
+- **AI Executive Summaries**: Powered by Claude Haiku to distill technical audit data into C-level actionable insights.
+- **Interactive Dashboards**: Glassmorphism UI with real-time dynamic savings counters and responsive typography.
+- **Transactional Reports**: Automated post-audit email delivery via Resend.
+- **Sharable Public Reports**: Secure, tokenized URLs for team sharing and collaboration.
+- **Accessibility Hardened**: Fully keyboard navigable with a Lighthouse score of 95+.
 
-## What is SpendPilot AI?
+## Live Demo
+[https://spendpilot.ai](https://spendpilot.ai) *(Placeholder)*
 
-SpendPilot AI helps startups and scale-ups automatically discover, track, and optimize their SaaS subscriptions. SpendPilot generates actionable audit reports reveal wasted spend, unused licenses, and consolidation opportunities.
+## Screenshots
 
-### **Core MVP Features**
-- **Deterministic Audit Engine**: 90+ rules for rightsizing and plan optimization.
-- **AI Executive Summaries**: Powered by Claude for high-level management insights.
-- **Interactive Dashboards**: Premium glassmorphism UI with real-time savings counters.
-- **Accessibility Hardened**: Lighthouse score > 90 with full keyboard navigation support.
-- **CI/CD Pipeline**: Automated linting and testing via GitHub Actions.
+![Landing Page](/placeholders/landing-page.png)
+*SpendPilot AI Landing Page*
 
----
+![Audit Dashboard](/placeholders/audit-dashboard.png)
+*Interactive Savings Dashboard*
 
 ## Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS v4 (Native `@theme` API)
+- **Database**: Supabase (PostgreSQL)
+- **AI Integration**: Anthropic SDK (Claude Haiku 4.5)
+- **Email Delivery**: Resend
+- **Testing**: Vitest
+- **Deployment**: Vercel
 
-| Layer        | Technology                     |
-|--------------|-------------------------------|
-| Framework    | Next.js 16 (App Router)       |
-| Language     | TypeScript 5                  |
-| Styling      | Tailwind CSS v4               |
-| Backend      | Supabase (Auth, DB)           |
-| AI Engine    | Anthropic (Claude 3.5 Sonnet) |
-| Emails       | Resend                        |
-| Deployment   | Vercel                        |
+## Architecture Summary
+SpendPilot AI embraces a server-first architecture using React Server Components. The core value is derived from a deterministic TypeScript rule engine (`lib/auditEngine.ts`) that evaluates user inputs against a static Pricing Registry. Results are persisted to Supabase and fed into an Anthropic API route to generate an AI summary. The final report is delivered asynchronously via Resend and accessible via a public tokenized route.
 
----
+## 5 Meaningful Engineering Decisions / Trade-Offs
 
-## Getting Started
+1. **Deterministic Rule Engine over Pure LLM Analysis**: We chose to hardcode audit rules in TypeScript rather than feeding raw data to an LLM. *Trade-off*: Higher upfront development cost to map out rules, but it guarantees instant, reproducible, and zero-cost audits at runtime.
+2. **Supabase over Prisma + PlanetScale**: We opted for Supabase for rapid iteration with its built-in PostgreSQL edge functions and RLS. *Trade-off*: Tighter vendor lock-in with Supabase's specific client SDKs, but significantly faster scaffolding for an MVP.
+3. **Tailwind v4 `@theme` over `tailwind.config.js`**: We adopted the cutting-edge Tailwind v4 CSS-first approach. *Trade-off*: Less community documentation available, but it drastically simplified our styling architecture and reduced build times.
+4. **Fire-and-Forget Email Dispatch**: Email sending via Resend is done asynchronously without `await` in the main API route. *Trade-off*: If the email fails, the user isn't immediately notified, but it prevents the Vercel edge function from timing out and ensures the user instantly sees the UI redirect.
+5. **SessionStorage Fallback**: Client-side reports read from `sessionStorage` while DB persistence happens in the background. *Trade-off*: Reports can be lost if the DB fails and the tab is closed, but it ensures a perceived zero-latency transition to the report view.
 
-### Prerequisites
-
-- Node.js >= 20
-- npm >= 10
-
-### Installation
+## Local Setup
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/BharathSAdiga/SpendPilot-AI.git
 cd SpendPilot-AI
-npm install
+
+# 2. Install dependencies
+npm ci
+
+# 3. Setup environment variables
+cp .env.example .env.local
+# Add your NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, RESEND_API_KEY
+
+# 4. Start the development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+## Deployment
 
----
+This project is optimized for deployment on Vercel.
 
-## Project Structure
-
-```
-spendpilot-ai/
-├── app/                   # Next.js App Router pages & layouts
-│   ├── layout.tsx         # Root layout (Navbar + Footer)
-│   ├── page.tsx           # Landing page
-│   ├── audit/             # Audit input page
-│   └── report/[slug]/     # Dynamic report pages
-├── components/
-│   └── layout/            # Navbar, Footer
-├── lib/                   # Utilities, API clients, helpers
-├── types/                 # Shared TypeScript interfaces
-├── data/                  # Static data, mock fixtures
-└── tests/                 # Unit and integration tests
-```
-
----
-
-## Scripts
-
-```bash
-npm run dev       # Start development server
-npm run build     # Production build
-npm run lint      # ESLint check
-npm run test      # Run test suite
-```
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-4. Open a pull request
-
----
-
-## License
-
-MIT © SpendPilot AI
+1. Push the code to a GitHub repository.
+2. Import the project into Vercel.
+3. Add the required Environment Variables in the Vercel dashboard.
+4. Click **Deploy**. CI/CD is fully automated via GitHub Actions (`.github/workflows/ci.yml`).

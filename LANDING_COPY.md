@@ -1,105 +1,33 @@
-# Landing Page Copy — SpendPilot AI
-
-> Copywriting for all sections of the SpendPilot AI marketing landing page.
-
----
+# Landing Page Copy
 
 ## Hero Section
-
-### Headline (H1)
-> **Optimize your SaaS spend with AI.**
-
-### Sub-headline
-> Automatically track, audit, and optimize your company's software expenses.  
-> Get actionable insights and save money in minutes.
-
-### CTA (Primary)
-> **Start Free Trial**
-
-### CTA (Secondary)
-> View Demo
-
-### Social proof (beneath CTAs)
-> *Join 200+ engineering teams saving money with SpendPilot*  
-> ★★★★★ — "We found $14,000/year in wasted licenses on our first audit."
-
----
-
-## Feature Section
-
-### Section Headline
-> **Everything you need to own your software spend.**
-
-### Feature Cards
-
-**1. Automated Discovery**
-> Find every SaaS tool your team is paying for — even the ones no one remembers signing up for. SpendPilot scans your connected accounts and surfaces the full picture.
-
-**2. Usage Tracking**
-> See who's actually using what. Connect your SSO provider and get seat-level utilization data across every subscription.
-
-**3. Smart Alerts**
-> Never miss a renewal again. Get notified 30 days before contracts expire and when usage drops below your defined thresholds.
-
-**4. AI Recommendations**
-> SpendPilot's AI analyzes your stack and generates prioritized action items — from renegotiation targets to tools worth consolidating.
-
----
+**Headline:** Stop bleeding cash on ghost seats and overlapping AI tools.
+**Subheadline:** The instant, deterministic SaaS spend audit for engineering teams. Discover wasted licenses, optimize plan tiers, and consolidate your stack in under 60 seconds. No credit card required.
+**CTA Copy:** Run Free Audit
 
 ## Social Proof Section
+*"SpendPilot found $1,200 in monthly savings just by pointing out we were paying for GitHub Copilot AND Cursor for the same 20 engineers. It paid for itself instantly."*
+— **Sarah Jenkins, VP Engineering @ TechFlow**
 
-### Section Headline
-> **Trusted by fast-moving engineering teams**
+*Trusted by engineering leaders at fast-growing startups.* (Placeholder for logos)
 
-### Testimonials
+## Trust-Building Messaging
+**Why trust SpendPilot AI?**
+We don't use hallucinating LLMs to guess your pricing. Our engine runs entirely on deterministic TypeScript rules mapped against a verified, continuously updated registry of real SaaS pricing plans. It's math, not magic.
 
-> *"SpendPilot found $8,000/month in unused Salesforce seats in our first audit. Paid for itself in 20 minutes."*  
-> — CTO, Series A SaaS company
+## 5 Frequently Asked Questions
 
-> *"I didn't know we had 6 overlapping project management tools until SpendPilot showed us. Now we're down to one."*  
-> — VP Engineering, 80-person startup
+**1. How does the free audit work?**
+You input your current team size and the AI tools your team uses. Our deterministic engine cross-references your stack against our pricing registry to instantly identify overspending, overlaps, and seat discrepancies.
 
-> *"The CSV upload was so simple. We had our first report in under 3 minutes."*  
-> — Head of Finance, fintech startup
+**2. Is my data secure?**
+Absolutely. Your audit data is processed server-side and never used to train AI models. We use enterprise-grade Supabase architecture with strict Row Level Security (RLS). 
 
----
+**3. Why not just use a spreadsheet?**
+Pricing models change constantly. Tracking the break-even points for monthly vs. annual billing, API tier limits, and SSO-taxes across 10 different tools requires hours of manual maintenance. SpendPilot does it instantly.
 
-## Pricing Section
+**4. What do I get if I enter my email?**
+You receive a persistent, shareable link to your interactive dashboard, plus a summarized PDF report delivered via email that you can hand directly to your CFO or finance team.
 
-### Headline
-> **Simple, transparent pricing. No enterprise sales calls.**
-
-### Sub-headline
-> Start free. Upgrade when you're ready. Cancel anytime.
-
----
-
-## FAQ Section
-
-**Q: Do you store my financial data?**  
-A: Your uploaded CSVs are processed securely and never shared. You control your data.
-
-**Q: Do I need an SSO provider to use SpendPilot?**  
-A: No. You can get started with just a CSV export from your bank or accounting software.
-
-**Q: How long does an audit take?**  
-A: Most audits complete in under 5 minutes after upload.
-
-**Q: Can I export my report?**  
-A: Yes. All reports are available as PDF exports on Starter and above.
-
-**Q: Is there a free plan?**  
-A: Yes — track up to 10 tools and run one audit per month, free forever.
-
----
-
-## CTA Section (Bottom)
-
-### Headline
-> **Ready to stop wasting SaaS budget?**
-
-### Sub-headline
-> Start your first audit today. No credit card required.
-
-### CTA
-> **Get Started Free**
+**5. How does SpendPilot make money if the audit is free?**
+The initial audit is a free tool. We offer a paid "Pro" tier for companies that want continuous API-level monitoring, automated Okta syncing to catch ghost seats, and weekly Slack alerts.

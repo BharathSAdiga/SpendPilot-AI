@@ -1,82 +1,55 @@
-# Customer Discovery: SpendPilot AI
+# User Interview Summaries
 
-> Structured notes from early customer discovery calls validating the core problem space for AI-driven spend optimization.
+*Note: Placeholder structure for early customer discovery calls.*
 
----
+## Interview 1: "The Spreadsheet Nightmare"
+- **Initials:** J.D.
+- **Role:** VP of Engineering
+- **Company Stage:** Series B (120 employees)
 
-## Executive Summary
+**Direct Quotes:**
+- *"I literally spent 4 hours last Friday cross-referencing our GitHub org against our HR system to figure out who actually needed a Copilot license."*
+- *"We bought ChatGPT Enterprise seats for the whole company, but I'm pretty sure sales is just using it to write emails once a week. It's a massive waste."*
+- *"If you could just connect to our Okta and tell me who hasn't logged into Cursor in 30 days, I'd pay you right now."*
 
-After speaking with 12 engineering leaders and founders, the core hypothesis is validated: **Nobody actually knows what they are paying for.** The transition from Seed to Series A is when SaaS sprawl becomes critical, yet procurement tools are too heavy for them. 
+**Surprising Insight:**
+The pain isn't just the money; it's the *compliance and offboarding*. When employees leave, their SaaS seats often remain active for months because engineering doesn't talk to finance.
 
-The biggest surprise was that users care more about *discovering inactive seats* than negotiating better plan pricing. They want immediate actionable items, not long-tail consulting projects.
-
----
-
-## Interview 1: The "Shadow IT" Problem
-
-**Role:** Head of Engineering  
-**Company Stage:** Series A B2B SaaS (45 employees)  
-**Duration:** 30 minutes (Zoom)
-
-### Key Quotes
-> *"I just found out we're still paying $400 a month for a staging environment on Heroku that we migrated away from 8 months ago. It just lived on a corporate card."*
-
-> *"I don't want another dashboard. Just tell me what to cancel. Give me a hit list."*
-
-### Surprising Insights
-- The engineering team is using 4 different AI coding assistants (Copilot, Cursor, ChatGPT, Anthropic) because different developers expensed different tools. There is zero standardization.
-- She actively avoids logging into AWS/GCP billing portals because "the UI makes me want to cry."
-
-### Feature Implications & Product Changes
-- **Change Inspired:** We must pivot the UI from "Here is your spend breakdown" to "Here is your Hit List of things to cancel today."
-- **Implication:** The engine needs a specific rule to flag overlapping categories (e.g., flagging if both GitHub Copilot and Cursor are on the same audit).
+**Product Changes Made:**
+Added the `excess-seats` rule to the deterministic engine to specifically highlight the gap between stated team size and billed seats.
 
 ---
 
-## Interview 2: The "Over-Provisioned" Founder
+## Interview 2: "The Shadow IT Sprawl"
+- **Initials:** S.K.
+- **Role:** Fractional CFO
+- **Company Stage:** Seed to Series A (Portfolio)
 
-**Role:** Founder & CEO  
-**Company Stage:** Seed Stage DevTools (15 employees)  
-**Duration:** 25 minutes (Google Meet)
+**Direct Quotes:**
+- *"Engineers just expense whatever AI tool they want. We have AWS Bedrock, Anthropic API, and OpenAI API all hitting the same corporate card."*
+- *"I don't know what 'Windsurf' is, but we're paying $35/mo for 10 people to use it."*
+- *"My ideal tool gives me ammunition. I need hard data to go back to the CTO and say 'We are standardizing on one platform'."*
 
-### Key Quotes
-> *"We're a team of 15, but somehow we have 22 active seats on our Notion Enterprise plan. I'm too scared to delete the extras in case they belong to contractors or integrations."*
+**Surprising Insight:**
+CFOs don't understand the technical differences between Claude and ChatGPT, nor do they care. They view them purely as overlapping categories. 
 
-> *"Honestly, if you could just read my credit card statement and tell me what's useless, I'd pay you $100 right now."*
-
-### Surprising Insights
-- The founder is doing all the financial ops themselves. They spend 2-3 hours at the end of every month reconciling Expensify and Ramp.
-- They are over-provisioning seats because offboarding is a manual, messy process. When someone leaves, their email is disabled, but their SaaS seats remain active.
-
-### Feature Implications & Product Changes
-- **Change Inspired:** Added "Inactive Seat Detection" as a core messaging pillar. 
-- **Implication:** We need a way to integrate directly with Google Workspace (SSO) to cross-reference active employee emails against provisioned SaaS seats. CSV upload alone won't solve the seat-matching problem.
+**Product Changes Made:**
+Created the `overlapping-tools` portfolio rule. The engine now groups tools into categories (e.g., `chat_assistant`, `coding_assistant`) and aggressively flags when a company pays for multiple tools in the exact same category.
 
 ---
 
-## Interview 3: The "Tool Fatigue" Operator
+## Interview 3: "The Plan Mismatch"
+- **Initials:** A.R.
+- **Role:** Head of Platform
+- **Company Stage:** Series A (45 employees)
 
-**Role:** Director of Finance / RevOps  
-**Company Stage:** Series B E-Commerce (110 employees)  
-**Duration:** 45 minutes (Zoom)
+**Direct Quotes:**
+- *"We are on the Enterprise plan for [Tool X] purely because we needed SSO. The actual features we don't even use."*
+- *"I know we're overpaying, but negotiating with sales reps takes too much time. I'd rather just pay the list price and get back to building."*
+- *"I don't want another dashboard. Just email me a PDF once a month telling me what to cancel."*
 
-### Key Quotes
-> *"Our marketing team bought Jasper, our content team uses Copy.ai, and engineering uses OpenAI directly. We are paying for three different wrappers around the exact same model."*
+**Surprising Insight:**
+Many startups accept the "SSO Tax" as a cost of doing business, but they are entirely blind to annual vs. monthly billing optimization, which requires zero negotiation to fix.
 
-> *"The problem isn't the $20/month subscription. The problem is that we have eighty of them."*
-
-### Surprising Insights
-- The finance team tries to enforce a "No new tools without approval" policy, but employees just use personal cards and expense it under "Software".
-- They care heavily about consolidating tools to save on security/compliance headaches, not just the hard dollar cost.
-
-### Feature Implications & Product Changes
-- **Change Inspired:** The audit report (`/report/[slug]`) needs a "Consolidation Opportunities" section.
-- **Implication:** The AI pricing registry must be smart enough to recognize that Jasper and Copy.ai serve the same underlying "Content Generation" use case, and recommend consolidating into a single Enterprise contract.
-
----
-
-## Synthesis & Next Steps
-
-1. **Build the "Hit List" UI:** The report page must prioritize high-confidence cancellations above the fold.
-2. **Overlap Rules:** Immediately update `lib/auditRules.ts` to aggressively flag overlapping AI tools.
-3. **Workspace Integration Roadmap:** CSV uploads are good for MVP, but Google Workspace API integration is required to solve the "Seat Mismatch" problem effectively.
+**Product Changes Made:**
+Implemented the `annual-billing-savings` rule. It specifically calculates the exact dollar amount a company would save by simply clicking the "Switch to Annual" button in their billing portals, offering an immediate, frictionless win.
