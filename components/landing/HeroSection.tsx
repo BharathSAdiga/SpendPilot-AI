@@ -90,9 +90,9 @@ function RoiRow({ tool, saving, pct, color }: { tool: string; saving: string; pc
     return () => clearTimeout(t);
   }, [pct]);
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-[11px] font-medium text-muted-foreground w-20 shrink-0 truncate">{tool}</span>
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+    <div className="flex items-center gap-3" role="img" aria-label={`${tool}: ${saving} savings (${pct}%)`}>
+      <span className="text-[11px] font-medium text-muted-foreground w-20 shrink-0 truncate" aria-hidden="true">{tool}</span>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }} aria-hidden="true">
         <div
           className="h-full rounded-full"
           style={{
@@ -102,7 +102,7 @@ function RoiRow({ tool, saving, pct, color }: { tool: string; saving: string; pc
           }}
         />
       </div>
-      <span className="text-[11px] font-bold tabular-nums shrink-0" style={{ color }}>{saving}</span>
+      <span className="text-[11px] font-bold tabular-nums shrink-0" style={{ color }} aria-hidden="true">{saving}</span>
     </div>
   );
 }

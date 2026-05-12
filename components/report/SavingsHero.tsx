@@ -109,11 +109,19 @@ function AnnualChart({
   const last = pts[pts.length - 1];
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="w-full"
-      aria-label="12-month cumulative savings projection chart"
-    >
+    <div className="relative group">
+      <div id="chart-desc" className="sr-only">
+        This chart shows a 12-month projection of cumulative savings. 
+        Starting from zero, the savings grow as recommendations are implemented across immediate, 
+        short-term, and strategic phases, reaching a total of {fmtCompact(last.v)} by the end of the year.
+      </div>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full"
+        aria-labelledby="chart-title chart-desc"
+        role="img"
+      >
+        <title id="chart-title">12-month cumulative savings projection chart</title>
       <defs>
         <linearGradient id="sh-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#10b981" stopOpacity="0.28" />
@@ -208,6 +216,7 @@ function AnnualChart({
         </text>
       </g>
     </svg>
+    </div>
   );
 }
 
@@ -281,9 +290,10 @@ function TimelineBucket({
       <div
         className="text-3xl font-extrabold tabular-nums leading-none"
         style={{ color: cfg.accent }}
+        aria-label={`${fmtFull(displayed)} ${showAnnual ? "per year" : "per month"}`}
       >
-        {fmtFull(displayed)}
-        <span className="text-sm font-semibold ml-1 opacity-70">
+        <span aria-hidden="true">{fmtFull(displayed)}</span>
+        <span className="text-sm font-semibold ml-1 opacity-70" aria-hidden="true">
           /{showAnnual ? "yr" : "mo"}
         </span>
       </div>
@@ -321,11 +331,14 @@ function SavingsRing({
             style={{ transition: "stroke-dasharray 1.4s cubic-bezier(0.16,1,0.3,1)" }}
           />
         </svg>
-        <span className="absolute text-xs font-bold tabular-nums" style={{ color }}>
+        <span className="absolute text-xs font-bold tabular-nums" style={{ color }} aria-hidden>
           {Math.round(pct)}%
         </span>
       </div>
-      <span className="text-[10px] text-muted-foreground text-center leading-tight max-w-[60px]">{label}</span>
+      <span className="text-[10px] text-muted-foreground text-center leading-tight max-w-[60px]" aria-hidden>
+        {label}
+      </span>
+      <span className="sr-only">{label}: {Math.round(pct)}% of total savings</span>
     </div>
   );
 }
@@ -454,6 +467,7 @@ export function SavingsHero({ projection, currentSpend, companyName }: SavingsHe
                     key={v}
                     id={`savings-hero-toggle-${v.toLowerCase()}`}
                     onClick={() => setShowAnnual(v === "Annual")}
+                    aria-pressed={isActive}
                     className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
                     style={
                       isActive
@@ -479,17 +493,18 @@ export function SavingsHero({ projection, currentSpend, companyName }: SavingsHe
               <span className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
                 Total {showAnnual ? "Annual" : "Monthly"} Savings Identified
               </span>
-              <div
-                className="text-6xl md:text-7xl lg:text-8xl font-extrabold tabular-nums leading-none tracking-tight"
-                style={{
-                  background: "linear-gradient(135deg,#34d399 0%,#10b981 45%,#059669 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {fmtFull(primaryCount)}
-              </div>
+                <div
+                  className="text-6xl md:text-7xl lg:text-8xl font-extrabold tabular-nums leading-none tracking-tight"
+                  style={{
+                    background: "linear-gradient(135deg,#34d399 0%,#10b981 45%,#059669 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                  aria-label={`${fmtFull(primaryCount)} total savings identified`}
+                >
+                  <span aria-hidden="true">{fmtFull(primaryCount)}</span>
+                </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
                 <span className="text-sm text-muted-foreground">
                   <span

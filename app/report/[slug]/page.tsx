@@ -29,8 +29,8 @@ function ScoreRing({ score }: { score: number }) {
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
   return (
-    <div className="relative w-28 h-28 flex items-center justify-center">
-      <svg width="112" height="112" viewBox="0 0 112 112" className="-rotate-90">
+    <div className="relative w-28 h-28 flex items-center justify-center" role="img" aria-label={`Efficiency score: ${score} out of 100`}>
+      <svg width="112" height="112" viewBox="0 0 112 112" className="-rotate-90" aria-hidden="true">
         <circle cx="56" cy="56" r={r} stroke="#ffffff10" strokeWidth="10" fill="none" />
         <circle
           cx="56" cy="56" r={r}
@@ -43,6 +43,7 @@ function ScoreRing({ score }: { score: number }) {
       <span
         className="absolute text-2xl font-bold tabular-nums"
         style={{ color: colour }}
+        aria-hidden="true"
       >
         {score}
       </span>
@@ -258,17 +259,17 @@ function LiveReport({ result }: { result: AuditResult }) {
           </div>
 
           {/* Total spend */}
-          <div className="glass-card p-6 relative overflow-hidden group">
+          <article className="glass-card p-6 relative overflow-hidden group" aria-labelledby="total-spend-heading">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h3 className="tracking-tight text-sm font-medium text-muted-foreground">Total Monthly Spend</h3>
+            <h3 id="total-spend-heading" className="tracking-tight text-sm font-medium text-muted-foreground">Total Monthly Spend</h3>
             <div className="text-3xl font-bold mt-3 text-foreground">${fmt(totalMonthlySpendUsd)}</div>
             <p className="text-xs text-muted-foreground mt-2">{input.tools.length} tools · {input.teamSize} seats</p>
-          </div>
+          </article>
 
           {/* Findings */}
-          <div className="glass-card p-6 relative overflow-hidden group border-red-500/20">
+          <article className="glass-card p-6 relative overflow-hidden group border-red-500/20" aria-labelledby="findings-heading">
             <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h3 className="tracking-tight text-sm font-medium text-muted-foreground">Findings</h3>
+            <h3 id="findings-heading" className="tracking-tight text-sm font-medium text-muted-foreground">Findings</h3>
             <div className="text-3xl font-bold mt-3 text-red-500">{findingCounts.total}</div>
             <p className="text-xs text-muted-foreground mt-2 flex gap-2">
               <span className="text-red-400">{findingCounts.critical} critical</span>
@@ -277,38 +278,41 @@ function LiveReport({ result }: { result: AuditResult }) {
               <span>·</span>
               <span className="text-blue-400">{findingCounts.info} info</span>
             </p>
-          </div>
+          </article>
 
           {/* Savings */}
-          <div className="glass-card p-6 relative overflow-hidden group border-green-500/20">
+          <article className="glass-card p-6 relative overflow-hidden group border-green-500/20" aria-labelledby="savings-heading">
             <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h3 className="tracking-tight text-sm font-medium text-muted-foreground">Potential Savings</h3>
+            <h3 id="savings-heading" className="tracking-tight text-sm font-medium text-muted-foreground">Potential Savings</h3>
             <div className="text-3xl font-bold mt-3 text-green-500">${fmt(totalPotentialSavingsUsd)}/mo</div>
             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
               ${fmt(totalPotentialSavingsUsd * 12)}/year if actioned
             </p>
-          </div>
+          </article>
         </div>
 
         {/* ── Per-tool table ── */}
-        <div className="glass-card overflow-hidden">
+        <section className="glass-card overflow-hidden" aria-labelledby="tool-breakdown-heading">
           <div className="p-6 border-b border-border/40 bg-white/5">
-            <h3 className="font-semibold text-lg text-foreground">Tool Breakdown</h3>
+            <h3 id="tool-breakdown-heading" className="font-semibold text-lg text-foreground">Tool Breakdown</h3>
           </div>
           <div className="p-2">
-            <div className="space-y-1">
+            <ul className="space-y-1" role="list">
               {toolSummaries.map((ts) => {
                 const initials = ts.toolEntry.tool.slice(0, 2).toUpperCase();
                 const score = ts.efficiencyScore;
                 const scoreColor = score >= 75 ? "text-green-500" : score >= 50 ? "text-yellow-500" : "text-red-500";
                 return (
-                  <div
+                  <li
                     key={ts.toolEntry.tool}
                     className="flex items-center justify-between p-4 rounded-md hover:bg-white/5 transition-colors group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-lg ${ts.hasCritical ? "bg-red-500/10 border-red-500/20 text-red-400" : "bg-primary/10 border-primary/20 text-primary"} border flex items-center justify-center font-bold text-sm`}>
+                      <div 
+                        className={`w-12 h-12 rounded-lg ${ts.hasCritical ? "bg-red-500/10 border-red-500/20 text-red-400" : "bg-primary/10 border-primary/20 text-primary"} border flex items-center justify-center font-bold text-sm`}
+                        aria-hidden="true"
+                      >
                         {initials}
                       </div>
                       <div>
@@ -325,12 +329,12 @@ function LiveReport({ result }: { result: AuditResult }) {
                       <p className="font-medium text-foreground">${fmt(ts.toolEntry.monthlySpend)}/mo</p>
                       <p className={`text-xs mt-1 ${scoreColor}`}>Score: {score}/100</p>
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
-        </div>
+        </section>
 
         {/* ── Spend Charts ── */}
         <SpendCharts
