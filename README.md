@@ -11,7 +11,14 @@
 
 ## What is SpendPilot AI?
 
-SpendPilot AI helps startups and scale-ups automatically discover, track, and optimize their SaaS subscriptions. By connecting your SSO provider or importing CSV exports, SpendPilot generates actionable audit reports — revealing wasted spend, unused licenses, and consolidation opportunities.
+SpendPilot AI helps startups and scale-ups automatically discover, track, and optimize their SaaS subscriptions. SpendPilot generates actionable audit reports reveal wasted spend, unused licenses, and consolidation opportunities.
+
+### **Core MVP Features**
+- **Deterministic Audit Engine**: 90+ rules for rightsizing and plan optimization.
+- **AI Executive Summaries**: Powered by Claude for high-level management insights.
+- **Interactive Dashboards**: Premium glassmorphism UI with real-time savings counters.
+- **Accessibility Hardened**: Lighthouse score > 90 with full keyboard navigation support.
+- **CI/CD Pipeline**: Automated linting and testing via GitHub Actions.
 
 ---
 
@@ -19,12 +26,12 @@ SpendPilot AI helps startups and scale-ups automatically discover, track, and op
 
 | Layer        | Technology                     |
 |--------------|-------------------------------|
-| Framework    | Next.js 15 (App Router)       |
+| Framework    | Next.js 16 (App Router)       |
 | Language     | TypeScript 5                  |
 | Styling      | Tailwind CSS v4               |
-| Auth         | _Planned: Clerk / NextAuth_   |
-| Database     | _Planned: Postgres + Prisma_  |
-| AI           | _Planned: OpenAI / Vercel AI_ |
+| Backend      | Supabase (Auth, DB)           |
+| AI Engine    | Anthropic (Claude 3.5 Sonnet) |
+| Emails       | Resend                        |
 | Deployment   | Vercel                        |
 
 ---
