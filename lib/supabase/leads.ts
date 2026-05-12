@@ -23,28 +23,39 @@ export async function captureLead(payload: {
   firstName?:          string;
   lastName?:           string;
   companyName?:        string;
+  jobTitle?:           string;
   source?:             string;
   consentedMarketing?: boolean;
 }): Promise<LeadRow> {
+  const admin = supabaseAdmin;
+  if (!admin) throw new Error("[supabase] supabaseAdmin not initialised");
+
   const insert: LeadInsert = {
     email:                payload.email.toLowerCase().trim(),
     first_name:           payload.firstName    ?? null,
     last_name:            payload.lastName     ?? null,
     company_name:         payload.companyName  ?? null,
+    job_title:            payload.jobTitle     ?? null,
     source:               payload.source       ?? null,
     consented_marketing:  payload.consentedMarketing ?? false,
     consented_at:         payload.consentedMarketing ? new Date().toISOString() : null,
     status:               "new",
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("leads")
-    // @ts-expect-error
-    .upsert(insert as never, { onConflict: "email", ignoreDuplicates: false })
+    .insert(insert as any)
     .select()
     .single();
 
-  if (error) throw new Error(`[supabase] captureLead failed: ${error.message}`);
+  if (error) {
+    if (error.code === '23505') {
+      // Unique constraint violation (email already exists)
+      const existing: any = await admin.from("leads").select().eq("email", insert.email).single();
+      if (existing.data) return existing.data as LeadRow;
+    }
+    throw new Error(`[supabase] captureLead failed: ${error.message}`);
+  }
   return data;
 }
 
@@ -61,8 +72,8 @@ export async function linkLeadToUser(
   const update: LeadUpdate = { user_id: userId };
   const { error } = await admin
     .from("leads")
-    // @ts-expect-error
-    .update(update as never)
+    // @ts-ignore
+    .update(update)
     .eq("id", leadId);
 
   if (error) throw new Error(`[supabase] linkLeadToUser failed: ${error.message}`);
@@ -82,8 +93,8 @@ export async function updateLeadStatus(
   const update: LeadUpdate = { status, ...(notes ? { notes } : {}) };
   const { error } = await admin
     .from("leads")
-    // @ts-expect-error
-    .update(update as never)
+    // @ts-ignore
+    .update(update)
     .eq("id", leadId);
 
   if (error) throw new Error(`[supabase] updateLeadStatus failed: ${error.message}`);

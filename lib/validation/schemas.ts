@@ -94,6 +94,8 @@ export const orgContextSchema = z.object({
   teamSize: teamSizeSchema,
   primaryUseCase: useCaseSchema,
   email: z.string().email("Please enter a valid email address.").optional(),
+  jobTitle: z.string().max(80).optional(),
+  honeypot: z.string().max(0).optional(),
 });
 
 export type OrgContext = z.infer<typeof orgContextSchema>;

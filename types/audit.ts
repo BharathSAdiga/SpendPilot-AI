@@ -59,6 +59,8 @@ export interface AuditFormValues {
   teamSize: number;
   primaryUseCase: UseCase;
   email?: string;
+  jobTitle?: string;
+  honeypot?: string;
   tools: AuditToolEntry[];
 }
 

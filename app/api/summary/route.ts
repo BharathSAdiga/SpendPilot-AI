@@ -77,9 +77,33 @@ function extractJson(raw: string): unknown {
   return JSON.parse(cleaned);
 }
 
+// ─── Rate limiting ──────────────────────────────────────────────────────────────
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const MAX_REQUESTS = 3;
+const ipRequests = new Map<string, { count: number; expires: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = ipRequests.get(ip);
+  if (!record || record.expires < now) {
+    ipRequests.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW });
+    return false;
+  }
+  if (record.count >= MAX_REQUESTS) return true;
+  record.count++;
+  return false;
+}
+
 // ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<NextResponse<SummaryApiResponse>> {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please try again later.", code: "rate_limit" },
+      { status: 429 }
+    );
+  }
   // 1. Check API key
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {

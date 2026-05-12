@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, FormProvider, Controller } from "react-hook-form";
+import { useForm, FormProvider, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { auditFormSchema, type AuditFormSchema } from "@/lib/auditSchema";
 import { partialAuditFormSchema } from "@/lib/validation";
@@ -33,10 +33,6 @@ function inputCls(hasError?: boolean) {
   ].join(" ");
 }
 
-function selectCls(hasError?: boolean) {
-  return inputCls(hasError) + " appearance-none cursor-pointer pr-8";
-}
-
 // ─── Live summary pill ────────────────────────────────────────────────────────
 
 function SummaryPill({
@@ -58,6 +54,63 @@ function SummaryPill({
       </span>
       {sub && (
         <span className="text-[10px] text-[var(--muted-foreground)]">{sub}</span>
+      )}
+    </div>
+  );
+}
+
+function AuditSummaryStrip() {
+  const tools = useWatch({ name: "tools" });
+  const teamSize = useWatch({ name: "teamSize" });
+
+  const totalSpend = totalMonthlySpend(
+    (tools ?? []).map((t: any) => ({
+      ...t,
+      monthlySpend: Number(t?.monthlySpend) || 0,
+      seats: Number(t?.seats) || 0,
+    }))
+  );
+  const totalSeatCount = totalSeats(
+    (tools ?? []).map((t: any) => ({
+      ...t,
+      monthlySpend: Number(t?.monthlySpend) || 0,
+      seats: Number(t?.seats) || 0,
+    }))
+  );
+  const perHead = spendPerHead(
+    (tools ?? []).map((t: any) => ({
+      ...t,
+      monthlySpend: Number(t?.monthlySpend) || 0,
+      seats: Number(t?.seats) || 0,
+    })),
+    Number(teamSize) || 0
+  );
+
+  if (totalSpend === 0 && totalSeatCount === 0) return null;
+
+  return (
+    <div
+      className="flex flex-wrap gap-3 justify-center"
+      role="status"
+      aria-live="polite"
+      aria-label="Live spend summary"
+    >
+      <SummaryPill
+        label="Total / Month"
+        value={`$${totalSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        sub="across all tools"
+      />
+      <SummaryPill
+        label="Total Seats"
+        value={totalSeatCount.toLocaleString()}
+        sub="licensed users"
+      />
+      {perHead !== null && (
+        <SummaryPill
+          label="Per Head"
+          value={`$${perHead.toFixed(2)}`}
+          sub="monthly / team member"
+        />
       )}
     </div>
   );
@@ -92,9 +145,7 @@ function FieldLabel({
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
 export interface AuditFormProps {
-  /** Optional callback — if omitted the form POSTs to /api/audit directly */
   onSubmit?: (data: AuditFormValues) => void | Promise<void>;
-  /** Put the form into loading/saving state */
   isLoading?: boolean;
 }
 
@@ -112,7 +163,6 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
       teamSize: undefined,
       primaryUseCase: undefined,
       tools: [
-        // Pre-seed one empty row so the form isn't blank
         { tool: "" as any, plan: "" as any, monthlySpend: undefined as any, seats: undefined as any },
       ],
     },
@@ -122,7 +172,6 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
     register,
     control,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = methods;
 
@@ -135,33 +184,6 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
       debounceMs: 600,
     });
 
-  // Live-watch tool rows for the summary strip
-  const watchedTools = watch("tools");
-  const watchedTeamSize = watch("teamSize");
-
-  const totalSpend = totalMonthlySpend(
-    (watchedTools ?? []).map((t) => ({
-      ...t,
-      monthlySpend: Number(t.monthlySpend) || 0,
-      seats: Number(t.seats) || 0,
-    }))
-  );
-  const totalSeatCount = totalSeats(
-    (watchedTools ?? []).map((t) => ({
-      ...t,
-      monthlySpend: Number(t.monthlySpend) || 0,
-      seats: Number(t.seats) || 0,
-    }))
-  );
-  const perHead = spendPerHead(
-    (watchedTools ?? []).map((t) => ({
-      ...t,
-      monthlySpend: Number(t.monthlySpend) || 0,
-      seats: Number(t.seats) || 0,
-    })),
-    Number(watchedTeamSize) || 0
-  );
-
   const busy = isSubmitting || isLoading;
 
   const handleFormSubmit = async (data: AuditFormSchema) => {
@@ -170,28 +192,36 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
       if (onSubmit) {
         await onSubmit(data as AuditFormValues);
       } else {
-        // Default: POST to backend audit API
         const res = await fetch("/api/audit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
+        
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
+          
+          if (res.status === 500 && err?.result) {
+             console.warn("Backend failed, falling back to local processing", err);
+             const id = `${Date.now()}`;
+             sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify({ ...err.result, fallbackMode: true }));
+             setReportId(id);
+             clearDraftOnSuccess();
+             setSubmitSuccess(true);
+             router.push(`/report/${id}`);
+             return;
+          }
           throw new Error(err?.error ?? `Server error ${res.status}`);
         }
-        const responseData = await res.json();
-        const result: AuditResult = responseData.result || responseData; // Fallback in case backend doesn't wrap
         
-        // Use the Supabase-generated token as the slug, fallback to timestamp if it failed
+        const responseData = await res.json();
+        const result: AuditResult = responseData.result || responseData; 
         const id = responseData.public_token || `${Date.now()}`;
         
-        // Store in sessionStorage so the report page can read it immediately
         sessionStorage.setItem(`spendpilot:report:${id}`, JSON.stringify(result));
         setReportId(id);
         clearDraftOnSuccess();
         setSubmitSuccess(true);
-        // Navigate to live report
         router.push(`/report/${id}`);
         return;
       }
@@ -249,32 +279,7 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
         </div>
 
         {/* ── Live summary strip ── */}
-        {(totalSpend > 0 || totalSeatCount > 0) && (
-          <div
-            className="flex flex-wrap gap-3 justify-center"
-            role="status"
-            aria-live="polite"
-            aria-label="Live spend summary"
-          >
-            <SummaryPill
-              label="Total / Month"
-              value={`$${totalSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-              sub="across all tools"
-            />
-            <SummaryPill
-              label="Total Seats"
-              value={totalSeatCount.toLocaleString()}
-              sub="licensed users"
-            />
-            {perHead !== null && (
-              <SummaryPill
-                label="Per Head"
-                value={`$${perHead.toFixed(2)}`}
-                sub="monthly / team member"
-              />
-            )}
-          </div>
-        )}
+        <AuditSummaryStrip />
 
         {/* ── API error banner ── */}
         {apiError && (
@@ -320,6 +325,9 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
             aria-label="AI spend audit form"
             className="flex flex-col gap-6"
           >
+            {/* Honeypot for spam protection */}
+            <input type="text" {...register("honeypot")} className="hidden" aria-hidden="true" tabIndex={-1} />
+            
             {/* ── Organisation details ── */}
             <fieldset className="section-card" aria-labelledby="org-details-heading">
               <legend id="org-details-heading" className="text-sm font-semibold text-[var(--foreground)] sr-only">
@@ -443,36 +451,53 @@ export function AuditForm({ onSubmit, isLoading = false }: AuditFormProps) {
                   </p>
                 )}
               </div>
-              {/* Email (optional) */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="field-label">
-                  Email <span className="text-muted-foreground font-normal">(optional)</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="you@company.com"
-                    aria-invalid={!!errors.email}
-                    aria-describedby={errors.email ? "email-error" : "email-desc"}
-                    disabled={busy}
-                    className={errors.email ? "form-input-error" : "form-input"}
-                    {...register("email")}
-                  />
-                  <span
-                    className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] select-none"
-                    aria-hidden="true"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                  </span>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 pt-4 border-t border-[var(--border)]">
+                {/* Email (optional) */}
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="email" className="field-label">
+                    Email <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="email"
+                      type="email"
+                      placeholder="you@company.com"
+                      aria-invalid={!!errors.email}
+                      aria-describedby={errors.email ? "email-error" : "email-desc"}
+                      disabled={busy}
+                      className={errors.email ? "form-input-error" : "form-input"}
+                      {...register("email")}
+                    />
+                  </div>
+                  {errors.email ? (
+                    <p id="email-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                      <span aria-hidden="true">⚠</span> {errors.email.message}
+                    </p>
+                  ) : (
+                    <p id="email-desc" className="text-xs text-[var(--muted-foreground)]">Receive a copy of your report.</p>
+                  )}
                 </div>
-                {errors.email ? (
-                  <p id="email-error" role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
-                    <span aria-hidden="true">⚠</span> {errors.email.message}
-                  </p>
-                ) : (
-                  <p id="email-desc" className="text-xs text-[var(--muted-foreground)]">We'll send a copy of your audit report here.</p>
-                )}
+
+                {/* Job Title (optional) */}
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="jobTitle" className="field-label">
+                    Job Title <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <input
+                    id="jobTitle"
+                    type="text"
+                    placeholder="e.g. CTO, Founder"
+                    disabled={busy}
+                    className="form-input"
+                    {...register("jobTitle")}
+                  />
+                  {errors.jobTitle && (
+                    <p role="alert" className="text-xs text-[var(--destructive)] flex items-center gap-1">
+                      <span aria-hidden="true">⚠</span> {errors.jobTitle.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </fieldset>
 

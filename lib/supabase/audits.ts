@@ -69,8 +69,7 @@ export async function insertAudit(
 
   const { data, error } = await admin
     .from("audits")
-    // @ts-expect-error
-    .insert(payload as never)
+    .insert(payload as any)
     .select()
     .single();
 
@@ -91,8 +90,8 @@ export async function setAuditPublic(
   const update: AuditUpdate = { is_public: isPublic };
   const { error } = await admin
     .from("audits")
-    // @ts-expect-error
-    .update(update as never)
+    // @ts-ignore
+    .update(update)
     .eq("id", auditId);
 
   if (error) throw new Error(`[supabase] setAuditPublic failed: ${error.message}`);
