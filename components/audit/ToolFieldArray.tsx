@@ -278,7 +278,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
           <button
             type="button"
             onClick={addEmptyTool}
-            className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-xs shrink-0"
+            className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-sm shrink-0"
             aria-label="Add another AI tool"
           >
             <PlusIcon />
@@ -307,7 +307,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
         <button
           type="button"
           onClick={addEmptyTool}
-          className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-xs self-start"
+          className="premium-btn-secondary !min-h-[40px] !py-1.5 !px-4 text-sm self-start"
           aria-label="Add another AI tool"
         >
           <PlusIcon />
@@ -323,7 +323,7 @@ export function ToolFieldArray({ maxTools = 20 }: ToolFieldArrayProps) {
 function ChevronIcon() {
   return (
     <span
-      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
+      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground)] opacity-70"
       aria-hidden="true"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
